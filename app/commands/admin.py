@@ -7,7 +7,7 @@ class Admin:
     """Admin and moderator utility commands"""
     def __init__(self, bot):
         self.bot = bot
-        self.ban_list = {}
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(kick_members=True)
@@ -42,11 +42,14 @@ class Admin:
     async def unban(self, ctx, member):
         """ Unbans A Selected Member """
         initiator = ctx.message.author.name
+        banned_users = await self.bot.get_bans(ctx.message.server)
 
-        user = discord.User(id=self.ban_list[member])
+        for user in banned_users:
+            if member == user.name:
+                member = user
 
         try:
-            await self.bot.unban(ctx.message.server, user)
+            await self.bot.unban(ctx.message.server, member)
             await self.bot.say(f"{member} has been reprieved by {initiator}")
         except discord.Forbidden:
             await self.bot.say("You do not have permission to use this command")
