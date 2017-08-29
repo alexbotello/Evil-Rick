@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+app/settings.py
+create_server.sh
+restart.sh
+create_test.sh
+test_restart.sh
