@@ -7,16 +7,19 @@ class Admin:
     """Admin and moderator utility commands"""
     def __init__(self, bot):
         self.bot = bot
+        self.ban_list = {}
 
     @commands.command(pass_context=True)
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member):
         """Kick A Selected Member"""
-        initiator = ctx.message.author
+        initiator = ctx.message.author.name
 
-        await self.bot.delete_message(ctx.message)
-        await self.bot.kick(member)
-        await self.bot.say("```{} was kicked by {}```".format(member, initiator))
+        try:
+            await self.bot.kick(member)
+            await self.bot.say(f"{member.name} was kicked by {initiator}")
+        except discord.Forbidden:
+            await self.bot.say("You do not have permission to use this command")
 
 
     @commands.command(pass_context=True, no_pm=True)
@@ -24,30 +27,30 @@ class Admin:
     @checks.is_owner()
     async def ban(self, ctx, member: discord.Member):
         """Ban A Selected Member"""
-        initiator = ctx.message.author
+        initiator = ctx.message.author.name
+        self.ban_list[member.name] = member.id
+        
+        try:
+            await self.bot.ban(member)
+            await self.bot.say(f"{member.name}'s been banished to the shadow realm by {initiator}")
+        except discord.Forbidden:
+            await self.bot.say("You do not have permission to use this command")
 
-        await self.bot.delete_message(ctx.message)
-        await self.bot.ban(member)
-        await self.bot.say("```{}'s been banished "
-                           "to the shadow realm by {}```".format(member,
-                                                                 initiator))
-
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.command(pass_context=True, no_pm=True)   
     @commands.has_permissions(ban_members=True)
     @checks.is_owner()
-    async def unban(self, ctx, member: discord.Member):
+    async def unban(self, ctx, member):
         """ Unbans A Selected Member """
-        initiator = ctx.message.author
-        await self.bot.delete_message(ctx.message)
+        initiator = ctx.message.author.name
+
+        user = discord.User(id=self.ban_list[member])
 
         try:
-            await self.bot.unban(ctx.message.server, member)
-            await self.bot.say("```{} has been reprieved by {}".format(member,
-                                                                   initiator))
+            await self.bot.unban(ctx.message.server, user)
+            await self.bot.say(f"{member} has been reprieved by {initiator}")
         except discord.Forbidden:
-            await ctx.author.send("Your privilege is too low to issue this "
-                                  "commands")
-
+            await self.bot.say("You do not have permission to use this command")
+    
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(kick_members=True)
@@ -56,11 +59,10 @@ class Admin:
         number = num or 100
         try:
             await self.bot.purge_from(ctx.message.channel, limit=number)
-            await self.bot.say("```Deleted {} messages "
-                               "from channel```".format(number))
+            await self.bot.say(f"Deleted {number} messages from channel")
         except discord.HTTPException:
-            await self.bot.say("```You can only bulk delete messages that "
-                               "are under 14 days old```")
+            await self.bot.say("You can only bulk delete messages that "
+                               "are under 14 days old")
 
 
     @commands.command(pass_context=True)
@@ -79,7 +81,7 @@ class Admin:
     async def joined_at(self, ctx, member: discord.Member = None):
         """Display Member Join Date"""
         if member is None:
-            member = ctx.message.author
+            member = ctx.message.author.name
         await self.bot.say('```{0} joined at {1}```'.format(member, member.joined_at))
 
 
