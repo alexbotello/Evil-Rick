@@ -1,0 +1,19 @@
+version: '2'
+services:
+  app:
+    build: ./app
+    command: python bot.py
+    ports:
+      - "5000:80"
+    volumes:
+      - ./app:/bot
+    depends_on:
+      - db
+
+  db:
+    restart: always
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - './data:/data/db'
