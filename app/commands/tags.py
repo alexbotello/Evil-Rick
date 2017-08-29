@@ -60,7 +60,7 @@ class Tags:
 
             tag = { "name": name,
                     "content": content,
-                    "creator": str(ctx.message.author)
+                    "creator": ctx.message.author.name
                   }
 
             tags.insert_one(tag)
