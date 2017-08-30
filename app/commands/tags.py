@@ -76,8 +76,7 @@ class Tags:
 
 
     @tag.command(pass_context=True)
-    @commands.has_permissions(administrator=True, ban_members=True)
-    @checks.is_owner()
+    @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *, name):
         """ Remove specified tag from server """
 
