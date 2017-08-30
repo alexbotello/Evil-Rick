@@ -31,7 +31,7 @@ async def on_ready():
     servers = str(len(bot.servers))
     channels = str(len(set(bot.get_all_channels())))
 
-    logger.info('Cocobot is logged on')
+    logger.info('EvilRick is logged on')
     logger.info(f"{bot.user} : {bot.user.id}")
     logger.info("-------------")
     logger.info("Connected to:")
