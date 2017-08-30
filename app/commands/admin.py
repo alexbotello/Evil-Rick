@@ -24,7 +24,6 @@ class Admin:
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(ban_members=True)
-    @checks.is_owner()
     async def ban(self, ctx, member: discord.Member):
         """Ban A Selected Member"""
         initiator = ctx.message.author.name
@@ -38,7 +37,6 @@ class Admin:
 
     @commands.command(pass_context=True, no_pm=True)   
     @commands.has_permissions(ban_members=True)
-    @checks.is_owner()
     async def unban(self, ctx, member):
         """ Unbans A Selected Member """
         initiator = ctx.message.author.name

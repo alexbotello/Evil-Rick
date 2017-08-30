@@ -1,5 +1,4 @@
 from discord.ext import commands
-from commands.utils import checks
 from config import logger
 import time
 import youtube_dl
@@ -48,7 +47,6 @@ class Sounds:
 
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
-    @checks.is_owner()
     async def join(self, ctx, *, channel : discord.Channel):
         """Enables Bot Sounds """
         try:
@@ -76,8 +74,6 @@ class Sounds:
             await state.voice.move_to(summoned_channel)
 
        
-
-
     @commands.command(pass_context=True)
     @commands.has_permissions(kick_members=True)
     async def stfu(self, ctx):
