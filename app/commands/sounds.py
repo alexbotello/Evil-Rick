@@ -75,7 +75,7 @@ class Sounds:
 
        
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def stfu(self, ctx):
         """SHUT THE FUCK UP!""" 
         
@@ -88,7 +88,7 @@ class Sounds:
     
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def pump(self, ctx):
         """I'm here to pump you up"""
         state = self.get_voice_state(ctx.message.server)
@@ -100,7 +100,7 @@ class Sounds:
 
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def listen(self, ctx):
         """Listen here you beautiful bitch...."""
         state = self.get_voice_state(ctx.message.server)
@@ -112,7 +112,7 @@ class Sounds:
 
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def plums(self, ctx):
         """...a nice bluish hue"""
         state = self.get_voice_state(ctx.message.server)
@@ -124,7 +124,7 @@ class Sounds:
 
     
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def hadtosay(self, ctx):
         """Shiiiiit, Negro! That's all you had to say"""
         state = self.get_voice_state(ctx.message.server)
@@ -136,7 +136,7 @@ class Sounds:
     
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def omg(self, ctx):
         """Oh my god, who the hell cares?"""
         state = self.get_voice_state(ctx.message.server)
@@ -148,7 +148,7 @@ class Sounds:
     
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def damn(self, ctx):
         """DAAAAAMMMMMMMMMNNNNN!"""
         state = self.get_voice_state(ctx.message.server)
@@ -160,7 +160,7 @@ class Sounds:
     
 
     @commands.command(pass_context=True)
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(create_instant_invite=True)
     async def dominate(self, ctx):
         """Dominating"""
         state = self.get_voice_state(ctx.message.server)
