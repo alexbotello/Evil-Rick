@@ -82,8 +82,8 @@ class Admin:
     async def joined_at(self, ctx, member: discord.Member = None):
         """Display Member Join Date"""
         if member is None:
-            member = ctx.message.author.name
-        await self.bot.say('```{0} joined at {1}```'.format(member, member.joined_at))
+            member = ctx.message.author
+        await self.bot.say('{member.name} joined at {member.joined_at}')
 
 
 def setup(bot):
