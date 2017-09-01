@@ -17,7 +17,7 @@ class Tags:
 
     def connect_database(self, name):
         db = self.client.settings.DB_NAME
-        collection = db[str(name)]
+        collection = db[name]
         return collection
 
 
@@ -25,8 +25,8 @@ class Tags:
     async def tag(self, ctx, *, name):
         """ Retrieve a tag command from the server """
 
-        guild = ctx.message.server
-        tags = self.connect_database(guild)
+        server = ctx.message.server.id
+        tags = self.connect_database(server)
 
         try:
             tag = tags.find_one({"name": name})
@@ -49,8 +49,8 @@ class Tags:
     async def create(self, ctx, name, *, content):
         """ Create a new tag for the server """
 
-        guild = ctx.message.server
-        tags = self.connect_database(guild)
+        server = ctx.message.server.id
+        tags = self.connect_database(server)
 
         try:
             tag = tags.find_one({"name": name})
@@ -80,8 +80,8 @@ class Tags:
     async def remove(self, ctx, *, name):
         """ Remove specified tag from server """
 
-        guild = ctx.message.server
-        tags = self.connect_database(guild)
+        server = ctx.message.server.id
+        tags = self.connect_database(server)
 
         try:
             deleted_tag = tags.find_one_and_delete({"name": name})
@@ -105,8 +105,8 @@ class Tags:
         """ List all server tags  """
 
         items = []
-        guild = ctx.message.server
-        tags = self.connect_database(guild)
+        server = ctx.message.server.id
+        tags = self.connect_database(server)
 
         try:
             tagsList = tags.find()
