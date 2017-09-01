@@ -43,7 +43,18 @@ class Sounds:
         voice = await self.bot.join_voice_channel(channel)
         state = self.get_voice_state(channel.server)
         state.voice = voice
+    
 
+    #async def on_voice_state_update(self, before, after):
+     #   channel = after.voice.voice_channel
+      #  voice = await self.bot.join_voice_channel(channel)
+#
+ #       player = await voice.create_ytdl_player('https://www.youtube.com/watch?v=UmOdK4J8584')
+  #      player.start()
+
+        #if player.error:
+                #logger.error(f"Error: {player.error} occured while streaming audio")
+      
 
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
@@ -55,8 +66,7 @@ class Sounds:
             await self.bot.say('Already in a voice channel...')
         except discord.InvalidArgument:
             await self.bot.say('This is not a voice channel...')
-        else:
-            await self.bot.say('Sounds are enabled in ' + channel.name)
+      
     
 
     @commands.command(pass_context=True, no_pm=True)
@@ -76,7 +86,7 @@ class Sounds:
        
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
-    async def stfu(self, ctx):
+    async def stfu(self, ctx): 
         """SHUT THE FUCK UP!""" 
         
         state = self.get_voice_state(ctx.message.server)
@@ -170,6 +180,30 @@ class Sounds:
         if player.error:
             logger.error(f"Error: {player.error} occured while streaming audio")
     
+
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    async def wub(self, ctx):
+        """Wubba Lubba Dub Dub"""
+        state = self.get_voice_state(ctx.message.server)
+        player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c')
+        player.start()
+
+        if player.error:
+            logger.error(f"Error: {player.error} occured while streaming audio")
+    
+
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    async def pickle(self, ctx):
+        """I'm Pickle Rick!"""
+        state = self.get_voice_state(ctx.message.server)
+        player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc')
+        player.start()
+
+        if player.error:
+            logger.error(f"Error: {player.error} occured while streaming audio")
+
 
 def setup(bot):
     bot.add_cog(Sounds(bot))
