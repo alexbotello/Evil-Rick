@@ -83,7 +83,7 @@ class Admin:
         """Display Member Join Date"""
         if member is None:
             member = ctx.message.author
-        await self.bot.say('{member.name} joined at {member.joined_at}')
+        await self.bot.say(f'{member.name} joined at {member.joined_at}')
 
 
 def setup(bot):
