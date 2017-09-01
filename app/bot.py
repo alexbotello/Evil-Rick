@@ -10,7 +10,7 @@ import settings
 description = "A discord bot created by a Coconut"
 formatter = commands.HelpFormatter(show_check_failure=False)
 
-initial_extentions = ('commands.admin', 'commands.ow', 'commands.tags',
+initial_extentions = ('commands.admin', 'commands.concert', 'commands.tags',
                       'commands.sounds')
 
 bot = commands.Bot(command_prefix='?', description=description, pm_help=True,
@@ -61,21 +61,6 @@ async def send_cmd_help(ctx):
             await bot.send_message(ctx.message.channel, page)
 
 
-async def concert_finder():
-    await bot.wait_until_ready()
-    channel = bot.get_channel(settings.CHANNEL)
-
-    while not bot.is_closed:
-        results = scrape.find_all_concerts()
-        for concert in results:
-            image = discord.Embed(colour=discord.Colour.default())
-            image.set_image(url=concert['image'])
-            await bot.send_message(channel, embed=image)
-            await bot.send_message(channel, concert['title'] + '\n' + concert['date'])
-            time.sleep(2)
-        await asyncio.sleep(60 * 500)
-
-
 @bot.command(pass_context=True)
 async def test(ctx):
      """This is a test command"""
@@ -83,5 +68,4 @@ async def test(ctx):
 
 
 if __name__ == "__main__":
-    bot.loop.create_task(concert_finder())
     bot.run(settings.TOKEN)
