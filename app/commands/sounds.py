@@ -79,14 +79,12 @@ class Sounds:
         if before.voice_channel:
             channel = before.voice_channel
             members = channel.voice_members
-            for member in members:
-                users_before.append(member.name)
+            users_before = [member.name for member in channel.voice_members]
 
         if after.voice_channel:
             channel = after.voice_channel
             members = channel.voice_members
-            for member in members:
-                users_after.append(member.name)
+            users_after = [member.name for member in channel.voice_members]
      
             if len(users_before) < len(users_after):
                 state = self.get_voice_state(after.server)
@@ -262,6 +260,19 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E')
+            self.play_voice_client(player)
+        except discord.ClientException:
+            self.bot.say("An error occured while streaming audio...")
+    
+
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    async def bitch(self, ctx):
+        """Like A Bitch"""
+        state = self.get_voice_state(ctx.message.server)
+        try:
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=koCAtBJA5XU')
             self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
