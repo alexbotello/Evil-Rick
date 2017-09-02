@@ -1,6 +1,7 @@
 from discord.ext import commands
 from config import logger
 import time
+import random
 import youtube_dl
 import discord
 import pymongo
@@ -45,21 +46,47 @@ class Sounds:
         state.voice = voice
     
 
-    #async def on_voice_state_update(self, before, after):
-     #   channel = after.voice.voice_channel
-      #  voice = await self.bot.join_voice_channel(channel)
-#
- #       player = await voice.create_ytdl_player('https://www.youtube.com/watch?v=UmOdK4J8584')
-  #      player.start()
+    async def on_voice_state_update(self, before, after):
+        """ Greets a user who joins the voice channel"""
+        greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
+                     'https://www.youtube.com/watch?v=9SL35HaJ2Ys']
 
-        #if player.error:
-                #logger.error(f"Error: {player.error} occured while streaming audio")
-      
+        before_members = []
+        after_members = []
+     
+        if before.is_afk or after.is_afk:
+            pass
+        elif before.deaf or after.deaf:
+            pass
+        elif before.self_mute or after.self_mute:
+            pass
+        elif before.mute or after.mute:
+            pass
+        elif before.self_deaf or after.self_deaf:
+            pass
 
+        if before.voice_channel:
+            channel = before.voice_channel
+            users = channel.voice_members
+            for u in users:
+                before_members.append(u.name)
+
+        if after.voice_channel:
+            channel = after.voice_channel
+            users = channel.voice_members
+            for u in users:
+                after_members.append(u.name)
+     
+            if len(before_members) < len(after_members):
+                state = self.get_voice_state(after.server)
+                player = await state.voice.create_ytdl_player(random.choice(greetings))
+                player.start()
+
+       
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def join(self, ctx, *, channel : discord.Channel):
-        """Enables Bot Sounds """
+        """Specify a channel for the bot to join """
         try:
             await self.create_voice_client(channel)
         except discord.ClientException:
