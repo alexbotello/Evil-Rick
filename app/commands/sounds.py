@@ -34,6 +34,7 @@ class Sounds:
     def __init__(self, bot):
         self.bot = bot
         self.voice_states = {}
+        self.is_playing = False
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
                           'https://www.youtube.com/watch?v=9SL35HaJ2Ys']
 
@@ -48,6 +49,15 @@ class Sounds:
         voice = await self.bot.join_voice_channel(channel)
         state = self.get_voice_state(channel.server)
         state.voice = voice
+    
+    def play_voice_client(self, player):
+        if not self.is_playing:        
+            player.start()
+            self.is_playing = True
+            
+            while player.is_playing():
+                continue
+            self.is_playing = False 
     
 
     async def on_voice_state_update(self, before, after):
@@ -86,6 +96,7 @@ class Sounds:
                 except discord.ClientException:
                     logger.error("On_Voice_State Greeting Failed")
        
+       
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def join(self, ctx, *, channel : discord.Channel):
@@ -120,8 +131,8 @@ class Sounds:
         """SHUT THE FUCK UP!""" 
         state = self.get_voice_state(ctx.message.server)
         try:
-            self.player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk')        
-            self.player.start()
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk')
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
     
@@ -134,7 +145,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://youtu.be/BgWd1dcODHU?t=10')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
 
@@ -147,7 +158,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -160,7 +171,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=7cIAcXpUuS0')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -173,7 +184,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=hRb7-3kebUQ')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
             
@@ -186,7 +197,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=RFZrzg62Zj0')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -199,7 +210,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=w1EHH0_CqqU')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -212,7 +223,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
     
@@ -225,7 +236,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c')
-            player.start()
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
     
@@ -238,7 +249,20 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc')
-            player.start()
+            self.play_voice_client(player)
+        except discord.ClientException:
+            self.bot.say("An error occured while streaming audio...")
+    
+
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    async def gold(self, ctx):
+        """I Love Gold"""
+        state = self.get_voice_state(ctx.message.server)
+        try:
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E')
+            self.play_voice_client(player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
