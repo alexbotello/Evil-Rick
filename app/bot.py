@@ -3,7 +3,6 @@ from config import logger
 import asyncio
 import time
 import discord
-import scrape
 import settings
 
 
@@ -48,7 +47,7 @@ async def on_command_error(error, ctx):
 
     elif isinstance(error, commands.BadArgument):
         await send_cmd_help(ctx)
-
+    
 
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
