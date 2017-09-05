@@ -1,12 +1,10 @@
 from discord.ext import commands
 from config import logger
-import time
 import random
 import youtube_dl
 import discord
 import pymongo
 import settings
-import os
 
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 
              'libopus.so.0', 'libopus.0.dylib', 'opus']
@@ -50,7 +48,7 @@ class Sounds:
         state = self.get_voice_state(channel.server)
         state.voice = voice
     
-    def play_voice_client(self, server, player):
+    def play_voice_client(self, channel, player):
         try:
             if not self.is_playing:        
                 player.start()
@@ -60,14 +58,11 @@ class Sounds:
                     continue
                 self.is_playing = False 
         except TimeoutError:
-            state = self.get_voice_state(server)
-        
+            await self.create_voice_client(channel)
+            
 
     async def on_voice_state_update(self, before, after):
-        """ Greets a user who joins the voice channel"""
-        users_before = []
-        users_after = []
-     
+        """ Greets a user who joins the voice channel""" 
         if before.is_afk or after.is_afk:
             pass
         elif before.deaf or after.deaf:
