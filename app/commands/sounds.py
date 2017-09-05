@@ -50,15 +50,18 @@ class Sounds:
         state = self.get_voice_state(channel.server)
         state.voice = voice
     
-    def play_voice_client(self, player):
-        if not self.is_playing:        
-            player.start()
-            self.is_playing = True
-            
-            while player.is_playing():
-                continue
-            self.is_playing = False 
-    
+    def play_voice_client(self, server, player):
+        try:
+            if not self.is_playing:        
+                player.start()
+                self.is_playing = True
+                
+                while player.is_playing():
+                    continue
+                self.is_playing = False 
+        except TimeoutError:
+            state = self.get_voice_state(server)
+        
 
     async def on_voice_state_update(self, before, after):
         """ Greets a user who joins the voice channel"""
@@ -130,7 +133,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
     
@@ -143,7 +146,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://youtu.be/BgWd1dcODHU?t=10')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
 
@@ -156,7 +159,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -169,7 +172,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=7cIAcXpUuS0')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -182,7 +185,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=hRb7-3kebUQ')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
             
@@ -195,7 +198,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=RFZrzg62Zj0')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -208,7 +211,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=w1EHH0_CqqU')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
@@ -221,7 +224,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
     
@@ -234,7 +237,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
     
@@ -247,7 +250,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
     
@@ -260,7 +263,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
     
@@ -273,7 +276,7 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=koCAtBJA5XU')
-            self.play_voice_client(player)
+            self.play_voice_client(ctx.message.server, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
