@@ -27,8 +27,6 @@ class Admin:
     async def ban(self, ctx, member: discord.Member):
         """Ban A Selected Member"""
         initiator = ctx.message.author.name
-        self.ban_list[member.name] = member.id
-        
         try:
             await self.bot.ban(member)
             await self.bot.say(f"{member.name}'s been banished to the shadow realm by {initiator}")
