@@ -67,11 +67,6 @@ class Concerts:
         """
         Use BandsinTown API to search for concert events
         """
-        if self._artists is None:
-            await self.bot.say("Please add artists first using '?concert add <artists>'")
-        if self._db is None:
-            self._db = self.connect_database(ctx.message.server)
-       
         concerts = self._db
         results = []
 
@@ -137,7 +132,10 @@ class Concerts:
         self._artists = self.load_artists(server)
         if self._db is None:
             self._db = self.connect_database(server)
-        await self.concert_finder(ctx)
+        if self._artists is None:
+            await self.bot.say("Please add artists first using '?concert add <artists>'")
+        else:
+            await self.concert_finder(ctx)
     
     @concert.command(pass_context=True)
     async def info(self, ctx):
@@ -171,13 +169,13 @@ class Concerts:
         document = self._db.find_one({'id': guild.id})
         if document:
             self._artists = self._artists + items
-            self._db.update({'id': guild.id}, {"$set": {'artists': self._artists}})
-            await self.bot.say(f"{items} have been added")
+            self._db.update_one({'id': guild.id}, {"$set": {'artists': self._artists}})
+            await self.bot.say(f"{items} has been added")
         else:
             self._artists = items
             artists = {"id": guild.id, "artists": items}   
             self._db.insert_one(artists)
-            await self.bot.say(f"{items} have been added")
+            await self.bot.say(f"{items} has been added")
         self._client.close()
     
     @concert.command(pass_context=True)
@@ -189,11 +187,21 @@ class Concerts:
             self._artists = self.load_artists(guild)
         if self._db is None:
             self._db = self.connect_database(guild)
-       
-        self._artists = [a for a in self._artists if not (a in artists)]
-        self._db.update({'id': guild.id}, {"$set": {'artists': self._artists}})
-        await self.bot.say(f"{artists} has been removed")
+
+        typos = list(set(artists).difference(self._artists))
+        values = list(set(artists).intersection(self._artists))
+        self._artists = list(set(self._artists).difference(artists))
+        
+        self._db.update_one({'id': guild.id}, {"$set": {'artists': self._artists}})
         self._client.close()
+        
+        if values == [] and typos:
+            await self.bot.say(f"{typos} is not in list. Typo?")
+        elif typos and values != []:
+            logger.error(f"Values: {values}")
+            await self.bot.say(f"{values} has been removed\n{typos} is not in list. Typo?")
+        else:
+            await self.bot.say(f"{values} has been removed from list")
 
     @concert.command(pass_context=True, hidden=True)
     @checks.is_owner()
