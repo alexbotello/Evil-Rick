@@ -1,10 +1,10 @@
-from discord.ext import commands
-from config import logger
-from commands.utils import checks, paginator
-from commands.utils.formatter import block
 import pymongo
 import discord
 import settings
+from config import logger
+from discord.ext import commands
+from commands.utils.formatter import block
+from commands.utils import checks, paginator
 
 
 class Tags:

@@ -1,10 +1,10 @@
-from discord.ext import commands
-from config import logger
 import random
-import youtube_dl
 import discord
 import pymongo
+import youtube_dl
 import settings
+from config import logger
+from discord.ext import commands
 
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 
              'libopus.so.0', 'libopus.0.dylib', 'opus']

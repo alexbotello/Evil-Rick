@@ -1,9 +1,9 @@
-from discord.ext import commands
-from config import logger
-import asyncio
 import time
+import asyncio
 import discord
 import settings
+from config import logger
+from discord.ext import commands
 
 
 description = "A discord bot created by a Coconut"
