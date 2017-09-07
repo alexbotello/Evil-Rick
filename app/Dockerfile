@@ -7,9 +7,11 @@ ADD requirements.txt /app/requirements.txt
 RUN apt-get update
 RUN apt-get install -y build-essential software-properties-common vim libffi-dev
 
+apt-get install libavcodec-extra-(52|53|5x)
 RUN apt-get install libav-tools
 RUN apt-get install libopus0
 RUN pip install --upgrade youtube_dl
+RUN apt-get update
 RUN pip install -r requirements.txt
 
 ADD . /app
