@@ -87,7 +87,7 @@ class Sounds:
             if len(users_before) < len(users_after):
                 state = self.get_voice_state(after.server)
                 try:
-                    player = await state.voice.create_ytdl_player(random.choice(self.greetings))
+                    player = await state.voice.create_ytdl_player(random.choice(self.greetings), use_avconv=True)
                     player.start()
                 except discord.ClientException:
                     logger.error("On_Voice_State Greeting Failed")
