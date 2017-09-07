@@ -13,7 +13,7 @@ services:
 
   db:
     restart: always
-    image: mongo:latest
+    image: nonoroazoro/rpi-mongo
     ports:
       - "27017:27017"
     volumes:

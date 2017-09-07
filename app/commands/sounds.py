@@ -127,7 +127,7 @@ class Sounds:
         """SHUT THE FUCK UP!""" 
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
@@ -140,7 +140,7 @@ class Sounds:
         """I'm here to pump you up"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://youtu.be/BgWd1dcODHU?t=10')
+            player = await state.voice.create_ytdl_player('https://youtu.be/BgWd1dcODHU?t=10', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
@@ -153,7 +153,7 @@ class Sounds:
         """Listen here you beautiful bitch...."""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -166,7 +166,7 @@ class Sounds:
         """...a nice bluish hue"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=7cIAcXpUuS0')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=7cIAcXpUuS0', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -179,7 +179,7 @@ class Sounds:
         """Shiiiiit, Negro! That's all you had to say"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=hRb7-3kebUQ')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=hRb7-3kebUQ', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -192,7 +192,7 @@ class Sounds:
         """Oh my god, who the hell cares?"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=RFZrzg62Zj0')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=RFZrzg62Zj0', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -205,7 +205,7 @@ class Sounds:
         """DAAAAAMMMMMMMMMNNNNN!"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=w1EHH0_CqqU')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=w1EHH0_CqqU', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -218,7 +218,7 @@ class Sounds:
         """Dominating"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
@@ -231,7 +231,7 @@ class Sounds:
         """Wubba Lubba Dub Dub"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -244,8 +244,9 @@ class Sounds:
         """I'm Pickle Rick!"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
+
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
     
@@ -257,7 +258,7 @@ class Sounds:
         """I Love Gold"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
@@ -270,7 +271,7 @@ class Sounds:
         """Like A Bitch"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=koCAtBJA5XU')
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=koCAtBJA5XU', use_avconv=True)
             await self.play_voice_client(ctx.message.channel, player)
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
