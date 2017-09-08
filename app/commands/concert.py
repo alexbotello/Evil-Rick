@@ -60,8 +60,8 @@ class Concerts:
                 await self.bot.send_message(channel, embed=image)
                 await self.bot.send_message(channel, concert['title'] + '\n' + concert['date'])
                 await asyncio.sleep(2)
-            #await asyncio.sleep(60 * 500)
-            await asyncio.sleep(30)
+            await asyncio.sleep(60 * 400)
+            #await asyncio.sleep(30)
     
     async def find_all_concerts(self, ctx):
         """
