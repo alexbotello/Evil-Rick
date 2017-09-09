@@ -1,4 +1,5 @@
 import time
+import random
 import asyncio
 import discord
 import settings
@@ -61,9 +62,12 @@ async def send_cmd_help(ctx):
 
 
 @bot.command(pass_context=True)
-async def test(ctx):
-     """This is a test command"""
-     await bot.say('This is a test message')
+@commands.cooldown(1, 20.0, type=commands.BucketType.server)
+async def roll(ctx):
+     """Roll the dice"""
+     value = random.randrange(0, 101)
+     user = ctx.message.author.name
+     await bot.say(f"{user}: **{value}**")
 
 
 if __name__ == "__main__":

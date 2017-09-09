@@ -55,13 +55,14 @@ class Admin:
     @commands.has_permissions(kick_members=True)
     async def delete(self, ctx, num: int):
         """Delete a specified number of messages"""
-        number = num or 100
         try:
-            await self.bot.purge_from(ctx.message.channel, limit=number)
-            await self.bot.say(f"Deleted {number} messages from channel")
+            await self.bot.purge_from(ctx.message.channel, limit=num)
+            await self.bot.say(f"Deleted {num} messages from channel")
         except discord.HTTPException:
             await self.bot.say("You can only bulk delete messages that "
                                "are under 14 days old")
+        except discord.Forbidden:
+            await self.bot.say("You do not have permission to use this command")
 
 
     @commands.command(pass_context=True)
