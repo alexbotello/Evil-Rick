@@ -6,7 +6,7 @@ import settings
 from config import logger
 from discord.ext import commands
 
-OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 
+OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll',
              'libopus.so.0', 'libopus.0.dylib', 'opus']
 
 for opus_lib in OPUS_LIBS:
@@ -14,7 +14,7 @@ for opus_lib in OPUS_LIBS:
         discord.opus.load_opus(opus_lib)
     except OSError:
         pass
-        
+
 logger.info(f"Opus Library Loaded: {discord.opus.is_loaded()}")
 
 
@@ -47,9 +47,9 @@ class Sounds:
         voice = await self.bot.join_voice_channel(channel)
         state = self.get_voice_state(channel.server)
         state.voice = voice
-    
+
     async def on_voice_state_update(self, before, after):
-        """ Greets a user who joins the voice channel""" 
+        """ Greets a user who joins the voice channel"""
         if before.is_afk or after.is_afk:
             pass
         elif before.deaf or after.deaf:
@@ -70,17 +70,17 @@ class Sounds:
             channel = after.voice_channel
             members = channel.voice_members
             users_after = [member.name for member in channel.voice_members]
-     
-            if len(users_before) < len(users_after):
+
+            if len(users_before) < len(users_after) or len(users_before) == 0:
                 state = self.get_voice_state(after.server)
                 try:
-                    player = await state.voice.create_ytdl_player(random.choice(self.greetings), 
+                    player = await state.voice.create_ytdl_player(random.choice(self.greetings),
                                                                   use_avconv=True)
                     player.start()
                 except discord.ClientException:
                     logger.error("On_Voice_State Greeting Failed")
-       
-       
+
+
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def join(self, ctx, *, channel : discord.Channel):
@@ -91,8 +91,8 @@ class Sounds:
             await self.bot.say('Already in a voice channel...')
         except discord.InvalidArgument:
             await self.bot.say('This is not a voice channel...')
-      
-    
+
+
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(ban_members=True)
     async def summon(self, ctx):
@@ -100,19 +100,19 @@ class Sounds:
         summoned_channel = ctx.message.author.voice_channel
         if summoned_channel is None:
             await self.bot.say('You are not in a voice channel.')
-            
+
         state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             state.voice = await self.bot.join_voice_channel(summoned_channel)
         else:
             await state.voice.move_to(summoned_channel)
 
-       
+
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
-    async def stfu(self, ctx): 
-        """SHUT THE FUCK UP!""" 
+    async def stfu(self, ctx):
+        """SHUT THE FUCK UP!"""
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk',
@@ -120,7 +120,7 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
-    
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -163,7 +163,7 @@ class Sounds:
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
-    
+
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -176,7 +176,7 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-            
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -213,12 +213,12 @@ class Sounds:
         """Dominating"""
         state = self.get_voice_state(ctx.message.server)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8', 
+            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8',
                                                           use_avconv=True)
             player.start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
-    
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -232,7 +232,7 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-    
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -246,7 +246,7 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-    
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -260,7 +260,7 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-    
+
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
