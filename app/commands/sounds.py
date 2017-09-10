@@ -50,6 +50,9 @@ class Sounds:
 
     async def on_voice_state_update(self, before, after):
         """ Greets a user who joins the voice channel"""
+        users_before = []
+        users_after = []
+
         if before.is_afk or after.is_afk:
             pass
         elif before.deaf or after.deaf:
@@ -71,7 +74,7 @@ class Sounds:
             members = channel.voice_members
             users_after = [member.name for member in channel.voice_members]
 
-            if len(users_before) < len(users_after) or len(users_before) == 0:
+            if len(users_before) < len(users_after) or users_before == []:
                 state = self.get_voice_state(after.server)
                 try:
                     player = await state.voice.create_ytdl_player(random.choice(self.greetings),
