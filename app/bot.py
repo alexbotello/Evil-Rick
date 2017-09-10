@@ -48,7 +48,7 @@ async def on_command_error(error, ctx):
 
     elif isinstance(error, commands.BadArgument):
         await send_cmd_help(ctx)
-    
+
 
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
@@ -62,7 +62,7 @@ async def send_cmd_help(ctx):
 
 
 @bot.command(pass_context=True)
-@commands.cooldown(1, 20.0, type=commands.BucketType.server)
+@commands.cooldown(1, 20.0, type=commands.BucketType.user)
 async def roll(ctx):
      """Roll the dice"""
      value = random.randrange(0, 101)
