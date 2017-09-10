@@ -19,12 +19,13 @@ class Concerts:
         self._client = None
         self._db = None
         self._artists = None
+        self.is_running = False
         self._radius = settings.RADIUS
         self._location = settings.LOCATION
         self.id = settings.ID
         self._url = settings.BIT_URL
         self.date = datetime.datetime.now().isoformat()
- 
+
     def connect_client(self):
         try:
             return pymongo.MongoClient(settings.DB_URL)
@@ -35,7 +36,7 @@ class Concerts:
         self._client = self.connect_client()
         db = self._client.setting.DB_NAME
         return db[server.name]
-    
+
     def load_artists(self, server):
         self._db = self.connect_database(server)
         try:
@@ -48,11 +49,12 @@ class Concerts:
                 return None
         except pymongo.errors.OperationFailure:
             logger.error("Could not retrieve artists from database..")
-        
+
     async def concert_finder(self, ctx):
         """Loop that scrapes concert data"""
         channel = ctx.message.channel
         while not self.bot.is_closed:
+            self.is_running = True
             all_concerts = await self.find_all_concerts(ctx)
             for concert in all_concerts:
                 image = discord.Embed(colour=discord.Colour.default())
@@ -62,7 +64,7 @@ class Concerts:
                 await asyncio.sleep(2)
             await asyncio.sleep(60 * 400)
             #await asyncio.sleep(30)
-    
+
     async def find_all_concerts(self, ctx):
         """
         Use BandsinTown API to search for concert events
@@ -112,7 +114,7 @@ class Concerts:
             if json_data == []:
                 logger.info(f'Found No Results For {artist}')
             if json_data:
-                logger.info(f'Found {old_result_found} posted result and ' 
+                logger.info(f'Found {old_result_found} posted result and '
                             f'{new_results_found} new results for {artist}')
         logger.info("Scrape was completed")
         self._client.close()
@@ -136,11 +138,16 @@ class Concerts:
             await self.bot.say("Please add artists first using '?concert add <artists>'")
         else:
             await self.concert_finder(ctx)
-    
+
     @concert.command(pass_context=True)
     async def info(self, ctx):
         """Displays the location and radius of search"""
         await self.bot.say(f"Searching a {self._radius} mile radius around {self._location} for concerts")
+
+    @concert.command(pass_context=True)
+    async def status(self, ctx):
+        """The current status of loop"""
+        await self.bot.say(f"Loop status: {self.is_running}")
 
     @concert.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -148,12 +155,12 @@ class Concerts:
         """Add artist(s) to look for"""
         guild = ctx.message.server
         items = []
-        
+
         if self._artists is None:
-            self._artists = self.load_artists(guild)        
+            self._artists = self.load_artists(guild)
         if self._db is None:
             self._db = self.connect_database(guild)
-        
+
         #TODO TURN THIS INTO LIST COMPREHENSION OR CONDENSE IT
         for artist in artists:
             artist = artist.replace("_", " ")
@@ -165,7 +172,7 @@ class Concerts:
                 items.append(artist)
             else:
                 items.append(artist)
-        
+
         document = self._db.find_one({'id': guild.id})
         if document:
             self._artists = self._artists + items
@@ -173,11 +180,11 @@ class Concerts:
             await self.bot.say(f"{items} has been added")
         else:
             self._artists = items
-            artists = {"id": guild.id, "artists": items}   
+            artists = {"id": guild.id, "artists": items}
             self._db.insert_one(artists)
             await self.bot.say(f"{items} has been added")
         self._client.close()
-    
+
     @concert.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *artists):
@@ -191,10 +198,10 @@ class Concerts:
         typos = list(set(artists).difference(self._artists))
         values = list(set(artists).intersection(self._artists))
         self._artists = list(set(self._artists).difference(artists))
-        
+
         self._db.update_one({'id': guild.id}, {"$set": {'artists': self._artists}})
         self._client.close()
-        
+
         if values == [] and typos:
             await self.bot.say(f"{typos} is not in list. Typo?")
         elif typos and values != []:
@@ -209,14 +216,14 @@ class Concerts:
         """Changes location of search"""
         self._location = location
         await self.bot.say(f"Location setting has been changed to {self._location}")
-    
+
     @concert.command(pass_context=True, hidden=True)
     @checks.is_owner()
     async def radius(self, ctx, radius: int):
         """Changes the search radius"""
         self._radius = str(radius) if radius <= 150 else '150'
         await self.bot.say(f"Radius setting has been changed to {self._radius}")
-        
+
     @concert.command(pass_context=True, name="list")
     async def _list(self, ctx):
         """List your saved artists"""
