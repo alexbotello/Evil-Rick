@@ -52,6 +52,7 @@ class Sounds:
         """ Greets a user who joins the voice channel"""
         users_before = []
         users_after = []
+        tim = '142914172089401344'
 
         if before.is_afk or after.is_afk:
             pass
@@ -77,8 +78,12 @@ class Sounds:
             if len(users_before) < len(users_after) or users_before == []:
                 state = self.get_voice_state(after.server)
                 try:
-                    player = await state.voice.create_ytdl_player(random.choice(self.greetings),
-                                                                  use_avconv=True)
+                    if after.id == tim:
+                        player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=XuI5sV_-kx0',
+                                                                      use_avconv=True)
+                    else:
+                        player = await state.voice.create_ytdl_player(random.choice(self.greetings),
+                                                                      use_avconv=True)
                     player.start()
                 except discord.ClientException:
                     logger.error("On_Voice_State Greeting Failed")
