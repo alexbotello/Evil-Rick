@@ -34,7 +34,8 @@ class Sounds:
         self.voice_states = {}
         self.is_playing = False
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
-                          'https://www.youtube.com/watch?v=9SL35HaJ2Ys']
+                          'https://www.youtube.com/watch?v=9SL35HaJ2Ys',
+                          'https://www.youtube.com/watch?v=XuI5sV_-kx0']
 
     def get_voice_state(self, server):
         state = self.voice_states.get(server.id)
@@ -52,18 +53,8 @@ class Sounds:
         """ Greets a user who joins the voice channel"""
         users_before = []
         users_after = []
+        user_joined_bots_channel = False
         tim = '142914172089401344'
-
-        if before.is_afk or after.is_afk:
-            pass
-        elif before.deaf or after.deaf:
-            pass
-        elif before.self_mute or after.self_mute:
-            pass
-        elif before.mute or after.mute:
-            pass
-        elif before.self_deaf or after.self_deaf:
-            pass
 
         if before.voice_channel:
             channel = before.voice_channel
@@ -74,19 +65,23 @@ class Sounds:
             channel = after.voice_channel
             members = channel.voice_members
             users_after = [member.name for member in channel.voice_members]
+        
+        for voice in self.bot.voice_clients:
+            if channel == voice.channel:
+                user_joined_bots_channel = True
 
-            if len(users_before) < len(users_after) or users_before == []:
-                state = self.get_voice_state(after.server)
-                try:
-                    if after.id == tim:
-                        player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=XuI5sV_-kx0',
-                                                                      use_avconv=True)
-                    else:
-                        player = await state.voice.create_ytdl_player(random.choice(self.greetings),
-                                                                      use_avconv=True)
-                    player.start()
-                except discord.ClientException:
-                    logger.error("On_Voice_State Greeting Failed")
+        if len(users_before) < len(users_after) and user_joined_bots_channel:
+            state = self.get_voice_state(after.server)
+            try:
+                if after.id == tim:
+                    player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=EDrMco4g8ng',
+                                                                    use_avconv=True)
+                else:
+                    player = await state.voice.create_ytdl_player(random.choice(self.greetings),
+                                                                    use_avconv=True)
+                player.start()
+            except discord.ClientException:
+                logger.error("On_Voice_State Greeting Failed")
 
 
     @commands.command(pass_context=True)
