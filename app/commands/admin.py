@@ -57,7 +57,7 @@ class Admin:
         """Delete a specified number of messages"""
         try:
             await self.bot.purge_from(ctx.message.channel, limit=num)
-            await self.bot.say(f"Deleted {num} messages from channel")
+            await self.bot.whisper(f"Deleted {num} messages from {ctx.message.channel}")
         except discord.HTTPException:
             await self.bot.say("You can only bulk delete messages that "
                                "are under 14 days old")
