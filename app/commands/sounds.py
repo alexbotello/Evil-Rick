@@ -283,7 +283,7 @@ class Sounds:
     @commands.cooldown(rate, per, type=commands.BucketType.server)
     async def leeroy(self, ctx):
         """....jenkins!"""
-        state = self.get_voice_state(ctx.mesage.server)
+        state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=yOMj7WttkOA",
                                                           use_avconv=True)
