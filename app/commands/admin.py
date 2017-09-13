@@ -55,6 +55,7 @@ class Admin:
     @commands.has_permissions(kick_members=True)
     async def delete(self, ctx, num: int):
         """Delete a specified number of messages"""
+        num += 1
         try:
             await self.bot.purge_from(ctx.message.channel, limit=num)
             await self.bot.whisper(f"Deleted {num} messages from {ctx.message.channel}")
