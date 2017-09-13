@@ -65,7 +65,7 @@ class Sounds:
             channel = after.voice_channel
             members = channel.voice_members
             users_after = [member.name for member in channel.voice_members]
-        
+
         for voice in self.bot.voice_clients:
             if channel == voice.channel:
                 user_joined_bots_channel = True
@@ -277,6 +277,19 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
+
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    async def leeroy(self, ctx):
+        """....jenkins!"""
+        state = self.get_voice_state(ctx.mesage.server)
+        try:
+            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=yOMj7WttkOA",
+                                                          use_avconv=True)
+            player.start()
+        except discord.ClientException:
+            self.bot.say('An error occured while streaming audio...')
 
 
 def setup(bot):
