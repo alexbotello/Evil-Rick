@@ -83,7 +83,6 @@ class Sounds:
             except discord.ClientException:
                 logger.error("On_Voice_State Greeting Failed")
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def join(self, ctx, *, channel : discord.Channel):
@@ -94,7 +93,6 @@ class Sounds:
             await self.bot.say('Already in a voice channel...')
         except discord.InvalidArgument:
             await self.bot.say('This is not a voice channel...')
-
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_permissions(ban_members=True)
@@ -110,7 +108,6 @@ class Sounds:
         else:
             await state.voice.move_to(summoned_channel)
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -123,7 +120,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -138,7 +134,6 @@ class Sounds:
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -151,7 +146,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -166,7 +160,6 @@ class Sounds:
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -179,7 +172,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -194,7 +186,6 @@ class Sounds:
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -207,7 +198,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -222,7 +212,6 @@ class Sounds:
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -235,7 +224,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -250,7 +238,6 @@ class Sounds:
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
 
-
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
@@ -263,7 +250,6 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -286,6 +272,19 @@ class Sounds:
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=yOMj7WttkOA",
+                                                          use_avconv=True)
+            player.start()
+        except discord.ClientException:
+            self.bot.say('An error occured while streaming audio...')
+    
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    async def leeroy(self, ctx):
+        """....jenkins!"""
+        state = self.get_voice_state(ctx.message.server)
+        try:
+            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=cLBq9vrWGuE",
                                                           use_avconv=True)
             player.start()
         except discord.ClientException:
