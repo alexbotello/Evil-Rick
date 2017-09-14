@@ -280,8 +280,8 @@ class Sounds:
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.server)
-    async def leeroy(self, ctx):
-        """....jenkins!"""
+    async def ree(self, ctx):
+        """REEEEEEEEE!"""
         state = self.get_voice_state(ctx.message.server)
         try:
             player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=cLBq9vrWGuE",
