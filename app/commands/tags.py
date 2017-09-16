@@ -1,10 +1,11 @@
 import pymongo
 import discord
 import settings
-from config import logger
 from discord.ext import commands
 from commands.utils.formatter import block
+from config import logger, connect_database
 from commands.utils import checks, paginator
+
 
 
 class Tags:
@@ -12,114 +13,77 @@ class Tags:
 
     def __init__(self, bot):
         self.bot = bot
-        self.client = pymongo.MongoClient(settings.DB_URL)
-        self.paginator = commands.Paginator(max_size=99)
-    
-    def connect_database(self, name):
-        db = self.client.settings.DB_NAME
-        collection = db[name]
-        return collection
-
+        #self.paginator = commands.Paginator(max_size=99)
 
     @commands.group(invoke_without_command=True, pass_context=True)
     async def tag(self, ctx, *, name):
         """ Retrieve a tag command from the server """
-        server = ctx.message.server.id
-        tags = self.connect_database(server)
-
-        try:
-            tag = tags.find_one({"name": name})
-            if tag is None:
-                raise TypeError
+        guild = ctx.message.server.id
+       
+        with connect_database(guild) as db:
+            tags = db
+            tag = tags.find_one({"name": name}) 
+    
+        if tag is None:
+            await self.bot.say('No tag was found...')
+        else:
             content = tag['content']
             await self.bot.say(content)
-
-        except TypeError:
-            await self.bot.say('No tag was found...')
-        finally:
-            self.client.close()
-
-
+        
     @tag.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
     async def create(self, ctx, name, *, content):
         """ Create a new tag for the server """
-
-        server = ctx.message.server.id
-        tags = self.connect_database(server)
-       
-        try:
-            tag = tags.find_one({"name": name})
+        guild = ctx.message.server.id
+        
+        with connect_database(guild) as db:
+            tag = db.find_one({"name": name})
             if tag:
-                raise pymongo.errors.InvalidName
+                await self.bot.say("Tag already exists...")
+            else:
+                tag = { "name": name,
+                        "content": content,
+                        "creator": ctx.message.author.name
+                }
+                db.insert_one(tag)
 
-            tag = { "name": name,
-                    "content": content,
-                    "creator": ctx.message.author.name
-                  }
-            tags.insert_one(tag)
-
-            msg = f"'?tag {tag['name']}' has been created by {tag['creator']}"
-            await self.bot.delete_message(ctx.message)
-            await self.bot.say(block(msg))
-
-        except pymongo.errors.InvalidName:
-            await self.bot.say("Tag already exists...")
-        finally:
-            self.client.close()
-
-
+                msg = f"'?tag {tag['name']}' has been created by {tag['creator']}"
+                await self.bot.delete_message(ctx.message)
+                await self.bot.say(block(msg))
+            
     @tag.command(pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *, name):
         """ Remove specified tag from server """
-
-        server = ctx.message.server.id
-        tags = self.connect_database(server)
-
-        try:
-            deleted_tag = tags.find_one_and_delete({"name": name})
-            if deleted_tag is None:
-                raise TypeError
-
-            msg = f"'?tag {deleted_tag['name']} has been deleted"
-            await self.bot.say(block(msg))
-       
-        except TypeError:
+        guild = ctx.message.server.id
+        
+        with connect_database(guild) as db:
+            deleted_tag = db.find_one_and_delete({"name": name})
+        
+        if deleted_tag is None:
             msg = f"'?tag {name}' doesn't exist"
             await self.bot.say(block(msg))
-        finally:
-            self.client.close()
-
+        else:    
+            msg = f"'?tag {deleted_tag['name']} has been deleted"
+            await self.bot.say(block(msg))
 
     @tag.command(pass_context=True, name="all")
     async def _all(self, ctx):
         """ List all server tags  """
         items = []
-        server = ctx.message.server.id
-        tags = self.connect_database(server)
+        guild = ctx.message.server.id
 
-        try:
-            tagsList = tags.find()
-            if tagsList == []:
-                raise ValueError("No tags have been created")
-           
-            for index, tag in enumerate(tagsList, start=1):
-                self.paginator.add_line(f"{index}. {tag['name']}")
-            
+        with connect_database(guild) as db:
+            tagsList = db.find()  
+     
+        if tagsList == []:
+            await self.bot.say("This server has no tags registered")
+        else:
             em = discord.Embed(colour=discord.Colour.default(),
                                title="Server Tags", description="")
-            pages = self.paginator.pages
-            
-            for page in pages:
-                em.description = "".join(page)
-                await self.bot.send_message(ctx.message.channel, embed=em)
-           
-        except ValueError:
-            await self.bot.say("This server has no tags registered")
-        finally:
-            self.client.close()
-
+            for index, tag in enumerate(tagsList, start=1):
+                em.description += f"\n{index}. {tag['name']}"
+            await self.bot.send_message(ctx.message.channel, embed=em)
 
 def setup(bot):
     bot.add_cog(Tags(bot))
