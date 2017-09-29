@@ -289,6 +289,19 @@ class Sounds:
             player.start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
+    
+    @commands.command(pass_context=True)
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    async def horny(self, ctx):
+        """DO I MAKE YOU RANDY!?!"""
+        state = self.get_voice_state(ctx.message.server)
+        try:
+            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=gXlIymq7ofE",
+                                                          use_avconv=True)
+            player.start()
+        except discord.ClientException:
+            self.bot.say('An error occured while streaming audio...')
 
 
 def setup(bot):
