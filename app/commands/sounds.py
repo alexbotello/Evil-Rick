@@ -125,7 +125,8 @@ class Sounds:
             else:
                 while self.queue[0].is_playing():
                     logger.info('Sound clip is already playing')
-                self.queue.pop(0)
+                if self.queue[0].is_done():
+                    self.queue.pop(0)
                 self.queue[0].start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
@@ -160,7 +161,8 @@ class Sounds:
             else:
                 while self.queue[0].is_playing():
                     logger.info('Sound clip is already playing')
-                self.queue.pop(0)
+                if self.queue[0].is_done():
+                    self.queue.pop(0)
                 self.queue[0].start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
