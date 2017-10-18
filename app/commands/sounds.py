@@ -129,6 +129,8 @@ class Sounds:
                 self.queue[0].start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
+        finally:
+            self.queue.pop(0)
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -162,6 +164,8 @@ class Sounds:
                 self.queue[0].start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
+        finally:
+            self.queue.pop(0)
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
