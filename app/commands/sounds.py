@@ -123,8 +123,8 @@ class Sounds:
             if len(self.queue) == 1:
                 self.queue[0].start()
             else:
-                while self.queue[0].is_playing():
-                    pass
+                if self.queue[0].is_playing():
+                    await asyncio.sleep(5)
                 if self.queue[0].is_done():
                     self.queue.pop(0)
                 self.queue[0].start()
@@ -157,8 +157,8 @@ class Sounds:
             if len(self.queue) == 1:
                 self.queue[0].start()
             else:
-                while self.queue[0].is_playing():
-                    pass
+                if self.queue[0].is_playing():
+                    await asyncio.sleep(5)
                 if self.queue[0].is_done():
                     self.queue.pop(0)
                 self.queue[0].start()
