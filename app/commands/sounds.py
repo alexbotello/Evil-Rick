@@ -125,7 +125,6 @@ class Sounds:
             else:
                 if self.queue[0].is_playing():
                     await asyncio.sleep(5)
-                if self.queue[0].is_done():
                     self.queue.pop(0)
                 self.queue[0].start()
         except discord.ClientException:
@@ -159,7 +158,6 @@ class Sounds:
             else:
                 if self.queue[0].is_playing():
                     await asyncio.sleep(5)
-                if self.queue[0].is_done():
                     self.queue.pop(0)
                 self.queue[0].start()
         except discord.ClientException:
