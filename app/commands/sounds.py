@@ -33,11 +33,10 @@ class Sounds:
         self.bot = bot
         self.voice_states = {}
         self.is_playing = False
-        self.queue = []
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
                           'https://www.youtube.com/watch?v=9SL35HaJ2Ys',
                           'https://www.youtube.com/watch?v=XuI5sV_-kx0',
-                          'https://www.youtube.com/watch?v=4dDARl6bEG4']
+                          'https://youtu.be/B7lgrFKI_L8']
 
     def get_voice_state(self, server):
         state = self.voice_states.get(server.id)
@@ -119,19 +118,9 @@ class Sounds:
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk',
                                                           use_avconv=True)
-            self.queue.append(player)
-            if len(self.queue) == 1:
-                self.queue[0].start()
-            else:
-                while self.queue[0].is_playing():
-                    logger.info('Sound clip is already playing')
-                if self.queue[0].is_done():
-                    self.queue.pop(0)
-                self.queue[0].start()
+            player.start()
         except discord.ClientException:
             self.bot.say('An error occured while streaming audio...')
-        finally:
-            self.queue.pop(0)
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
@@ -155,19 +144,9 @@ class Sounds:
         try:
             player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw',
                                                           use_avconv=True)
-            self.queue.append(player)
-            if len(self.queue) == 1:
-                self.queue[0].start()
-            else:
-                while self.queue[0].is_playing():
-                    logger.info('Sound clip is already playing')
-                if self.queue[0].is_done():
-                    self.queue.pop(0)
-                self.queue[0].start()
+            player.start()
         except discord.ClientException:
             self.bot.say("An error occured while streaming audio...")
-        finally:
-            self.queue.pop(0)
 
     @commands.command(pass_context=True)
     @commands.has_permissions(create_instant_invite=True)
