@@ -3,7 +3,7 @@ import discord
 import settings
 from discord.ext import commands
 from commands.utils.formatter import block
-from config import logger, connect_database
+from config import logger, ConnectDatabase
 from commands.utils import checks, paginator
 
 
@@ -20,7 +20,7 @@ class Tags:
         """ Retrieve a tag command from the server """
         guild = ctx.message.server.id
        
-        with connect_database(guild) as db:
+        with ConnectDatabase(guild) as db:
             tags = db
             tag = tags.find_one({"name": name}) 
     
@@ -36,7 +36,7 @@ class Tags:
         """ Create a new tag for the server """
         guild = ctx.message.server.id
         
-        with connect_database(guild) as db:
+        with ConnectDatabase(guild) as db:
             tag = db.find_one({"name": name})
             if tag:
                 await self.bot.say("Tag already exists...")
@@ -57,7 +57,7 @@ class Tags:
         """ Remove specified tag from server """
         guild = ctx.message.server.id
         
-        with connect_database(guild) as db:
+        with ConnectDatabase(guild) as db:
             deleted_tag = db.find_one_and_delete({"name": name})
         
         if deleted_tag is None:
@@ -73,7 +73,7 @@ class Tags:
         items = []
         guild = ctx.message.server.id
 
-        with connect_database(guild) as db:
+        with ConnectDatabase(guild) as db:
             tagsList = db.find()  
      
         if tagsList == []:

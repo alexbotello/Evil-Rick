@@ -8,7 +8,7 @@ import settings
 from discord.ext import commands
 from commands.utils import checks
 from commands.utils.formatter import block
-from config import logger, connect_database
+from config import logger, ConnectDatabase
 
 
 class Concerts:
@@ -39,8 +39,9 @@ class Concerts:
         guild = ctx.message.server
         while not self.bot.is_closed:
             self.is_running = True
-            with connect_database(guild.name) as db:
+            with ConnectDatabase(guild.name) as db:
                 all_concerts = await self.find_all_concerts(ctx, db)
+           
             for concert in all_concerts:
                 image = discord.Embed(colour=discord.Colour.default())
                 image.set_image(url=concert['image'])
@@ -115,8 +116,9 @@ class Concerts:
     async def start(self, ctx):
         """Start Concert Finder"""
         guild = ctx.message.server
-        with connect_database(guild.name) as db:
+        with ConnectDatabase(guild.name) as db:
             self._artists = self.load_artists(db, guild)
+        
         if self._artists is None:
             await self.bot.say("Please add artists first using '?concert add <artists>'")
         else:
@@ -139,7 +141,7 @@ class Concerts:
         guild = ctx.message.server
         items = []
 
-        with connect_database(guild.name) as db:
+        with ConnectDatabase(guild.name) as db:
             self._artists = self.load_artists(db, guild)        
         
         #TODO TURN THIS INTO LIST COMPREHENSION OR CONDENSE IT
@@ -152,8 +154,9 @@ class Concerts:
             else:
                 items.append(artist)
         
-        with connect_database(guild.name) as db:
+        with ConnectDatabase(guild.name) as db:
             document = db.find_one({'id': guild.id})
+            
             if document:
                 self._artists = self._artists + items
                 db.update_one({'id': guild.id}, {"$set": {'artists': self._artists}})
@@ -170,7 +173,7 @@ class Concerts:
         """Remove artist(s) from list"""
         guild = ctx.message.server
         
-        with connect_database(guild.name) as db:
+        with ConnectDatabase(guild.name) as db:
             self._artists = self.load_artists(db, guild)
             
             typos = list(set(artists).difference(self._artists))
@@ -206,7 +209,7 @@ class Concerts:
         """List your saved artists"""
         guild = ctx.message.server
 
-        with connect_database(guild.name) as db:
+        with ConnectDatabase(guild.name) as db:
             self._artists = self.load_artists(db, guild)
         
         if self._artists is None:
