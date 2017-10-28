@@ -67,23 +67,16 @@ class Sounds:
 
     async def on_voice_state_update(self, before, after):
         """ Greets a user who joins the voice channel"""
-        users_before = []
-        users_after = []
         user_joined_bots_channel = False
         tim = '142914172089401344'
+        members_before = before.voice_channel.voice_members
+        members_after = after.voice_channel.voice_members
 
-        if before.voice_channel:
-            channel = before.voice_channel
-            members = channel.voice_members
-            users_before = [member.name for member in channel.voice_members]
-
-        if after.voice_channel:
-            channel = after.voice_channel
-            members = channel.voice_members
-            users_after = [member.name for member in channel.voice_members]
+        users_before = [member.name for member in members_before]
+        users_after = [member.name for member in members_after]
 
         for voice in self.bot.voice_clients:
-            if channel == voice.channel:
+            if after.voice_channel == voice.channel:
                 user_joined_bots_channel = True
 
         if len(users_before) < len(users_after) and user_joined_bots_channel:
