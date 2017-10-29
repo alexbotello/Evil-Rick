@@ -100,7 +100,7 @@ class Sounds:
     async def on_voice_state_update(self, member, before, after):
         """ Greets a user who joins the voice channel"""
         tim = 142914172089401344
-        state = self.get_voice_state(member.guild.id, url)
+        state = self.get_voice_state(member.guild.id)
         members_before = len(before.channel.members)
         members_after = len(after.channel.members)
 
