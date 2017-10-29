@@ -8,13 +8,12 @@ from discord.ext import commands
 
 
 description = "A discord bot created by a Coconut"
-formatter = commands.HelpFormatter(show_check_failure=False)
 
 initial_extentions = ('commands.admin', 'commands.concert', 'commands.tags',
                       'commands.sounds')
 
 bot = commands.Bot(command_prefix='?', description=description, pm_help=True,
-                       help_attr=dict(hidden=True), formatter=formatter)
+                       help_attr=dict(hidden=True), formatter=commands.HelpFormatter())
 
 for extension in initial_extentions:
     try:
@@ -23,12 +22,11 @@ for extension in initial_extentions:
     except Exception as e:
         logger.warn(f"Failed to load extention {extension}\n{type(e).__name__}: {e}")
 
-
 @bot.event
 async def on_ready():
     """Logs bot credentials for successful login"""
     users = str(len(set(bot.get_all_members())))
-    servers = str(len(bot.servers))
+    servers = str(len(bot.guilds))
     channels = str(len(set(bot.get_all_channels())))
 
     logger.info('EvilRick is logged on')
@@ -39,35 +37,32 @@ async def on_ready():
     logger.info(f"Servers: {servers}")
     logger.info(f"Channels: {channels}")
 
-
 @bot.event
-async def on_command_error(error, ctx):
+async def on_command_error(ctx, error):
     logger.error(error)
     if isinstance(error, commands.MissingRequiredArgument):
         await send_cmd_help(ctx)
 
     elif isinstance(error, commands.BadArgument):
         await send_cmd_help(ctx)
-
-
+    
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
-        pages = bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
+        pages = await bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
         for page in pages:
-            await bot.send_message(ctx.message.channel, page)
+            await ctx.send(page)
     else:
-        pages = bot.formatter.format_help_for(ctx, ctx.command)
+        pages = await bot.formatter.format_help_for(ctx, ctx.command)
         for page in pages:
-            await bot.send_message(ctx.message.channel, page)
+            await ctx.send(page)
 
-
-@bot.command(pass_context=True)
-@commands.cooldown(1, 20.0, type=commands.BucketType.user)
+@bot.command()
+@commands.cooldown(1, 20.0, type=commands.BucketType.guild)
 async def roll(ctx):
      """Roll the dice"""
      value = random.randrange(0, 101)
-     user = ctx.message.author.name
-     await bot.say(f"{user}: **{value}**")
+     user = ctx.author.display_name
+     await ctx.send(f"{user}: **{value}**")
 
 
 if __name__ == "__main__":

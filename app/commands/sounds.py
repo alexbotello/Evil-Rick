@@ -1,4 +1,5 @@
 import random
+import shutil
 import asyncio
 import discord
 import pymongo
@@ -18,312 +19,436 @@ for opus_lib in OPUS_LIBS:
 
 logger.info(f"Opus Library Loaded: {discord.opus.is_loaded()}")
 
+ytdl_format_options = {"format": "bestaudio/best", "extractaudio": True, "audioformat": "mp3", 
+                       "noplaylist": True, "nocheckcertificate": True, "ignoreerrors": False, 
+                       "logtostderr": False, "quiet": True, "no_warnings": True, "default_search": "auto", 
+                       "source_address": "0.0.0.0", "preferredcodec": "libmp3lame"}
+
+def get_ytdl(id):
+    format = ytdl_format_options
+    format['outtmpl'] = "commands/sounds/{}/%(id)s.mp3".format(id)
+    return youtube_dl.YoutubeDL(format)
 
 class VoiceConnection:
-    def __init__(self, bot):
+    def __init__(self, bot, guild):
         self.bot = bot
         self.voice = None
-        self.current = None
-        self.play_next_sound = asyncio.Event()
-        self.sounds = asyncio.Queue()
-        self.player = self.bot.loop.create_task(self.play_sound())
-    
-    def toggle_next(self):
-        self.bot.loop.call_soon_threadsafe(self.play_next_sound.set)
-
-    async def play_sound(self):
+        self.guild = guild
+        self.conn = self.bot.loop.create_task(self._check_connection())
+  
+    async def _check_connection(self):
         while True:
-            self.play_next_sound.clear()
-            self.current = await self.sounds.get()
-            self.current.start()
-            await self.play_next_sound.wait()
-
+            if self.voice.is_connected():
+                continue
+            else:
+                self.clear_data(self.guild.id)
+    
+    @staticmethod
+    def clear_data(id=None):
+        if id is None:
+            shutil.rmtree('commands/sounds')
+        else:
+            shutil.rmtree(f"commands/sounds/{id}")
 
 class Sounds:
     """ Sound related commands for Evil Rick """
     rate = 1
-    per = 6.0
+    per = 4.0
 
     def __init__(self, bot):
         self.bot = bot
         self.voice_states = {}
-        self.is_playing = False
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
                           'https://www.youtube.com/watch?v=9SL35HaJ2Ys',
                           'https://www.youtube.com/watch?v=XuI5sV_-kx0',
                           'https://youtu.be/B7lgrFKI_L8']
+    @staticmethod
+    def download_video(id, url):
+        ytdl = get_ytdl(id)
+        data =  ytdl.extract_info(url, download=True)
+        
+        if "entries" in data:
+            data = data['entries'][0]
+        
+        title = data['title']
+        _id = data['id']
+        duration = None
 
-    def get_voice_state(self, server):
-        state = self.voice_states.get(server.id)
+        try:
+            duration = data['duration']
+        except KeyError:
+            pass
+        
+        path = f"commands/sounds/{id}"
+        fp = f"{path}/{_id}.mp3"
+        audio = discord.FFmpegPCMAudio(fp)
+        
+        return audio
+
+    def get_voice_state(self, guild):
+        state = self.voice_states.get(guild.id)
         if state is None:
-            state = VoiceConnection(self.bot)
-            self.voice_states[server.id] = state
+            state = VoiceConnection(self.bot, guild)
+            self.voice_states[guild.id] = state
         return state
 
     async def create_voice_client(self, channel):
-        voice = await self.bot.join_voice_channel(channel)
-        state = self.get_voice_state(channel.server)
+        voice = await channel.connect(reconnect=True)
+        state = self.get_voice_state(channel.guild)
         state.voice = voice
 
-    async def on_voice_state_update(self, before, after):
+    async def on_voice_state_update(self, member, before, after):
         """ Greets a user who joins the voice channel"""
+        tim = 142914172089401344
         user_joined_bots_channel = False
-        tim = '142914172089401344'
-        members_before = before.voice_channel.voice_members
-        members_after = after.voice_channel.voice_members
+        members_before = before.channel.members
+        members_after = after.channel.members
 
-        users_before = [member.name for member in members_before]
-        users_after = [member.name for member in members_after]
-
-        for voice in self.bot.voice_clients:
-            if after.voice_channel == voice.channel:
-                user_joined_bots_channel = True
-
-        if len(users_before) < len(users_after) and user_joined_bots_channel:
-            state = self.get_voice_state(after.server)
+        if after.channel == member.voice.channel:
+            user_joined_bots_channel = True
+        
+        if len(members_before) < len(members_after) and user_joined_bots_channel:
+            state = self.get_voice_state(member.guild)
             try:
-                if after.id == tim:
-                    player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=EDrMco4g8ng',
-                                                                  use_avconv=True)
-                else:
-                    player = await state.voice.create_ytdl_player(random.choice(self.greetings),
-                                                                  use_avconv=True)
-                player.start()
+                if member.id == tim:
+                    url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
+                    audio = self.download_video(member.guild.id, url)
+                    state.voice.play(audio)
+                else: 
+                    url = random.choice(self.greetings)
+                    audio = self.download_video(member.guild.id, url)
+                    state.voice.play(audio)
+                
+            except youtube_dl.utils.DownloadError as error:
+                logger.error(f"{error}: failed to download link")
+                member.send("Failed to download link from youtube...")
+        
             except discord.ClientException:
-                logger.error("On_Voice_State Greeting Failed")
+                logger.error('On Voice State Update Greeting Failed')
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @commands.has_permissions(ban_members=True)
-    async def join(self, ctx, *, channel : discord.Channel):
+    async def join(self, ctx, *, channel : commands.VoiceChannelConverter):
         """Specify a channel for the bot to join """
         try:
             await self.create_voice_client(channel)
         except discord.ClientException:
-            await self.bot.say('Already in a voice channel...')
+            await ctx.send('Already in a voice channel...')
         except discord.InvalidArgument:
-            await self.bot.say('This is not a voice channel...')
+            await ctx.send('This is not a voice channel...')
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.command(no_pm=True)
     @commands.has_permissions(ban_members=True)
     async def summon(self, ctx):
         """Summons the bot to join your voice channel."""
-        summoned_channel = ctx.message.author.voice_channel
-        if summoned_channel is None:
-            await self.bot.say('You are not in a voice channel.')
+        channel = ctx.author.voice.channel
+        if channel is None:
+            await ctx.send('You are not in a voice channel.')
 
-        state = self.get_voice_state(ctx.message.server)
+        state = self.get_voice_state(ctx.guild)
         if state.voice is None:
-            state.voice = await self.bot.join_voice_channel(summoned_channel)
+            state.voice = await channel.connect(reconnect=True)
         else:
-            await state.voice.move_to(summoned_channel)
+            await state.voice.move_to(channel)
 
-    @commands.command(pass_context=True)
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def clear(self, ctx):
+        """ Clear downloaded youtube files """
+        state = self.get_voice_state(ctx.guild)
+        try:
+            state.clear_data(ctx.guild.id)
+        except FileNotFoundError:
+            await ctx.author.send("No audio files to be cleared...")
+
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def stfu(self, ctx):
         """SHUT THE FUCK UP!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=wQYob6dpTTk'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=wQYob6dpTTk', 
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+        
         except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            ctx.send('An error occured while streaming audio...')
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def pump(self, ctx):
         """I'm here to pump you up"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://youtu.be/BgWd1dcODHU?t=10'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://youtu.be/BgWd1dcODHU?t=10',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+        
         except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            ctx.send('An error occured while streaming audio...')
 
-    @commands.command(pass_context=True)
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def listen(self, ctx):
         """Listen here you beautiful bitch...."""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=Jsi5VTzJpPw'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Jsi5VTzJpPw', 
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+        
         except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
-
-    @commands.command(pass_context=True)
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def plums(self, ctx):
         """...a nice bluish hue"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=7cIAcXpUuS0'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=7cIAcXpUuS0',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
         
-    @commands.command(pass_context=True)
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def hadtosay(self, ctx):
         """Shiiiiit, Negro! That's all you had to say"""
-        state = self.get_voice_state(ctx.message.server)
+        url = "https://www.youtube.com/watch?v=hRb7-3kebUQ"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=hRb7-3kebUQ',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def omg(self, ctx):
         """Oh my god, who the hell cares?"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=RFZrzg62Zj0'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=RFZrzg62Zj0',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
 
-    @commands.command(pass_context=True)
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def damn(self, ctx):
         """DAAAAAMMMMMMMMMNNNNN!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = "https://www.youtube.com/watch?v=w1EHH0_CqqU"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=w1EHH0_CqqU',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def dominate(self, ctx):
         """Dominating"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=tq65HEqNq-8'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=tq65HEqNq-8',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
 
-    @commands.command(pass_context=True)
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def wub(self, ctx):
         """Wubba Lubba Dub Dub"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=PAhoNoQ91_c'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=PAhoNoQ91_c',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def pickle(self, ctx):
         """I'm Pickle Rick!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=Ij7ayjBaNhc'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=Ij7ayjBaNhc',
-                                                          after=toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
 
-    @commands.command(pass_context=True)
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")
+
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def gold(self, ctx):
         """I Love Gold"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=DOFAnpb8I3E'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=DOFAnpb8I3E',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
 
-    @commands.command(pass_context=True)
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")   
+        
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def bitch(self, ctx):
         """Like A Bitch"""
-        state = self.get_voice_state(ctx.message.server)
+        url = 'https://www.youtube.com/watch?v=koCAtBJA5XU'
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player('https://www.youtube.com/watch?v=koCAtBJA5XU',
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")  
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def leeroy(self, ctx):
         """....jenkins!"""
-        state = self.get_voice_state(ctx.mesage.server)
+        url = "https://www.youtube.com/watch?v=yOMj7WttkOA"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=yOMj7WttkOA",
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")  
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def ree(self, ctx):
         """REEEEEEEEE!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = "https://www.youtube.com/watch?v=cLBq9vrWGuE"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=cLBq9vrWGuE",
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")  
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def horny(self, ctx):
         """DO I MAKE YOU RANDY!?!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = "https://www.youtube.com/watch?v=gXlIymq7ofE"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=gXlIymq7ofE",
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
-        except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(url)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...")  
 
-    @commands.command(pass_context=True)
+        except discord.ClientException:
+            ctx.send('An error occured while streaming audio...')
+        
+    @commands.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.server)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def triple(self, ctx):
         """Oh baby a triple, oh yeah!"""
-        state = self.get_voice_state(ctx.message.server)
+        url = "https://www.youtube.com/watch?v=13VFfsJTLdc"
+        state = self.get_voice_state(ctx.guild)
         try:
-            player = await state.voice.create_ytdl_player("https://www.youtube.com/watch?v=13VFfsJTLdc",
-                                                          after=state.toggle_next, use_avconv=True)
-            await state.sounds.put(player)
+            audio = self.download_video(ctx.guild.id, url)
+            state.voice.play(audio)
+        
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            ctx.send("Failed to download link from youtube...") 
+
         except discord.ClientException:
-            self.bot.say('An error occured while streaming audio...')
+            ctx.send('An error occured while streaming audio...')
+        
 
 def setup(bot):
     bot.add_cog(Sounds(bot))
