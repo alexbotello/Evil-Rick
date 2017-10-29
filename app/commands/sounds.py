@@ -81,7 +81,7 @@ class Sounds:
         
         path = f"commands/sounds/{id}"
         fp = f"{path}/{_id}.mp3"
-        audio = discord.FFmpegPCMAudio(fp)
+        audio = discord.FFmpegPCMAudio(fp, executable="avconv")
         
         return audio
 
