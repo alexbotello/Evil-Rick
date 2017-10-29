@@ -100,15 +100,11 @@ class Sounds:
     async def on_voice_state_update(self, member, before, after):
         """ Greets a user who joins the voice channel"""
         tim = 142914172089401344
-        user_joined_bots_channel = False
-        members_before = before.channel.members
-        members_after = after.channel.members
+        state = self.get_voice_state(member.guild.id, url)
+        members_before = len(before.channel.members)
+        members_after = len(after.channel.members)
 
-        if after.channel == member.voice.channel:
-            user_joined_bots_channel = True
-        
-        if len(members_before) < len(members_after) and user_joined_bots_channel:
-            state = self.get_voice_state(member.guild)
+        if members_before < members_after and member.voice.channel == state.voice.channel:
             try:
                 if member.id == tim:
                     url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
