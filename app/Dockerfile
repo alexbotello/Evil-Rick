@@ -5,7 +5,7 @@ WORKDIR /app
 ADD requirements.txt /app/requirements.txt
 
 RUN apt-get update
-RUN apt-get install -y build-essential libffi-dev libnacl-dev python3-dev
+RUN apt-get install -y build-essential libffi-dev libnacl-dev python3-dev git
 
 RUN apt-get install libav-tools
 RUN apt-get install libopus0
