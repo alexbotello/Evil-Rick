@@ -101,26 +101,30 @@ class Sounds:
         """ Greets a user who joins the voice channel"""
         tim = 142914172089401344
         state = self.get_voice_state(member.guild)
-        members_before = len(before.channel.members)
-        members_after = len(after.channel.members)
-
-        if members_before < members_after and member.voice.channel == state.voice.channel:
-            try:
-                if member.id == tim:
-                    url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
-                    audio = self.download_video(member.guild.id, url)
-                    state.voice.play(audio)
-                else: 
-                    url = random.choice(self.greetings)
-                    audio = self.download_video(member.guild.id, url)
-                    state.voice.play(audio)
+        if state.voice.channel == member.voice.channel:
+            if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
+                pass
+            elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
+                pass
+            elif after.afk or before.afk:
+                pass
+            else: 
+                try:
+                    if member.id == tim:
+                        url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
+                        audio = self.download_video(member.guild.id, url)
+                        state.voice.play(audio)
+                    else:
+                        url = random.choice(self.greetings)
+                        audio = self.download_video(member.guild.id, url)
+                        state.voice.play(audio)
                 
-            except youtube_dl.utils.DownloadError as error:
-                logger.error(f"{error}: failed to download link")
-                member.send("Failed to download link from youtube...")
-        
-            except discord.ClientException:
-                logger.error('On Voice State Update Greeting Failed')
+                except youtube_dl.utils.DownloadError as error:
+                    logger.error(f"{error}: failed to download link")
+                    member.send("Failed to download link from youtube...")
+
+                except discord.ClientException:
+                    logger.error('An error occured while streaming audio...')
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
