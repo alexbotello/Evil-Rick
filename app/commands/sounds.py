@@ -34,21 +34,19 @@ class VoiceConnection:
         self.bot = bot
         self.voice = None
         self.guild = guild
-        self.conn = self.bot.loop.create_task(self._check_connection())
-  
-    async def _check_connection(self):
-        while True:
-            if self.voice.is_connected():
-                continue
-            else:
-                self.clear_data(self.guild.id)
+        self.conn = self.bot.loop.create_task(self._clear_data())
     
-    @staticmethod
-    def clear_data(id=None):
-        if id is None:
-            shutil.rmtree('commands/sounds')
-        else:
-            shutil.rmtree(f"commands/sounds/{id}")
+    async def _clear_data(id=None):
+        await self.bot.wait_until_ready()
+        counter = 0
+        while not self.bot.is_closed():
+            counter += 1
+            logger.info(f"CLEARED YOUTUBE DATA: {counter}")
+            if id is None:
+                shutil.rmtree('commands/sounds')
+            else:
+                shutil.rmtree(f"commands/sounds/{id}")
+            await asyncio.sleep(60 * 180) # 3 hours
 
 class Sounds:
     """ Sound related commands for Evil Rick """
