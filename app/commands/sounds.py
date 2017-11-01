@@ -34,7 +34,7 @@ class VoiceConnection:
         self.bot = bot
         self.voice = None
         self.guild = guild
-        self.conn = self.bot.loop.create_task(self._clear_data())
+        self.bot.loop.create_task(self._clear_data())
     
     async def _clear_data(id=None):
         await self.bot.wait_until_ready()
