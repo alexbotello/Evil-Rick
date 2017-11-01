@@ -36,7 +36,7 @@ class VoiceConnection:
         self.guild = guild
         self.bot.loop.create_task(self._clear_data())
     
-    async def _clear_data(id=None):
+    async def _clear_data(self, id=None):
         await self.bot.wait_until_ready()
         counter = 0
         while not self.bot.is_closed():
@@ -46,7 +46,7 @@ class VoiceConnection:
                 shutil.rmtree('commands/sounds')
             else:
                 shutil.rmtree(f"commands/sounds/{id}")
-            await asyncio.sleep(60 * 180) # 3 hours
+            await asyncio.sleep(60 * 120) # 2 hours
 
 class Sounds:
     """ Sound related commands for Evil Rick """
