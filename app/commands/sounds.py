@@ -31,6 +31,7 @@ def get_ytdl(id):
 
 class VoiceConnection:
     def __init__(self, bot, guild):
+        """ Represents a discord voice client """
         self.bot = bot
         self.voice = None
         self.guild = guild
