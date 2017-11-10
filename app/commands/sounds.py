@@ -421,7 +421,7 @@ class Sounds:
         state = self.get_voice_state(ctx.guild)
         try:
             audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(url)
+            state.voice.play(audio)
         
         except youtube_dl.utils.DownloadError as error:
             logger.error(f"{error}: failed to download link")
