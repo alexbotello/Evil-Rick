@@ -103,15 +103,15 @@ class Sounds:
         """ Greets a user who joins the voice channel"""
         tim = 142914172089401344
         state = self.get_voice_state(member.guild)
-        if state.voice.channel == member.voice.channel:
-            if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
-                pass
-            elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
-                pass
-            elif after.afk or before.afk:
-                pass
-            else: 
-                try:
+        try:
+            if state.voice.channel == member.voice.channel:
+                if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
+                    pass
+                elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
+                    pass
+                elif after.afk or before.afk:
+                    pass
+                else: 
                     if member.id == tim:
                         url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
                         audio = self.download_video(member.guild.id, url)
@@ -121,12 +121,15 @@ class Sounds:
                         audio = self.download_video(member.guild.id, url)
                         state.voice.play(audio)
                 
-                except youtube_dl.utils.DownloadError as error:
-                    logger.error(f"{error}: failed to download link")
-                    member.send("Failed to download link from youtube...")
+        except youtube_dl.utils.DownloadError as error:
+            logger.error(f"{error}: failed to download link")
+            member.send("Failed to download link from youtube...")
 
-                except discord.ClientException:
-                    logger.error('An error occured while streaming audio...')
+        except discord.ClientException:
+            logger.error('An error occured while streaming audio...')
+        
+        except AttributeError:
+            logger.info('Skipping Voice State Update On Initial Join')
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
