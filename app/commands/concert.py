@@ -20,6 +20,7 @@ class Concerts:
         self._location = settings.LOCATION
         self.id = settings.ID
         self._url = settings.BIT_URL
+        self._is_running = False
  
     def load_artists(self, ctx, db):
         try:
@@ -34,6 +35,7 @@ class Concerts:
     async def concert_finder(self, ctx):
         """Loop that scrapes concert data"""
         while not self.bot.is_closed():
+            self._is_running = True
             with ConnectDatabase(ctx.guild.name) as db:
                 all_concerts = await self.find_all_concerts(db)
 
@@ -91,12 +93,12 @@ class Concerts:
                                 results.append(concert)
                             except pymongo.errors.OperationFailure:
                                 logger.error('Error inserting concert into database...')
-
-            if json_data == []:
-                logger.info(f'Found No Results For {artist}')
             if json_data:
                 logger.info(f'Found {old_result_found} posted result and ' 
                             f'{new_results_found} new results for {artist}')
+            else:
+                logger.info(f'Found No Results For {artist}')
+                
         logger.info("Scrape was completed")
         return results
 
@@ -126,7 +128,10 @@ class Concerts:
     @concert.command()
     async def status(self, ctx):
         """The current status of loop"""
-        await ctx.send(f"Loop status: {self.is_running}")
+        if self._is_running:
+            await ctx.send('Concert Finder - Online')
+        else:
+            await ctx.send('Concert Finder - Offline')
 
     @concert.command()
     @commands.has_permissions(create_instant_invite=True)
