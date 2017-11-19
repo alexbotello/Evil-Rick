@@ -7,7 +7,7 @@ from config import logger, ConnectDatabase
 
 
 class Tags:
-    """ Tag related commands for Cocobot """
+    """ Tag Command Cog """
 
     def __init__(self, bot):
         self.bot = bot
@@ -15,7 +15,9 @@ class Tags:
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx, *, name):
-        """ Retrieve a tag command from the server """       
+        """
+        Retrieve a tag from the server database
+        """       
         with ConnectDatabase(ctx.guild.id) as db:
             tags = db
             tag = tags.find_one({"name": name}) 
@@ -29,7 +31,9 @@ class Tags:
     @tag.command()
     @commands.has_permissions(create_instant_invite=True)
     async def create(self, ctx, name, *, content):
-        """ Create a new tag for the server """
+        """ 
+        Create a tag for the server 
+        """
         with ConnectDatabase(ctx.guild.id) as db:
             tag = db.find_one({"name": name})
             if tag:
@@ -48,7 +52,9 @@ class Tags:
     @tag.command()
     @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *, name):
-        """ Remove specified tag from server """
+        """ 
+        Remove a tag from server
+        """
         with ConnectDatabase(ctx.guild.id) as db:
             deleted_tag = db.find_one_and_delete({"name": name})
         
@@ -61,7 +67,9 @@ class Tags:
 
     @tag.command(name="all")
     async def _all(self, ctx):
-        """ List all server tags  """
+        """ 
+        List all server tags
+        """
         items = []
         with ConnectDatabase(ctx.guild.id) as db:
             tagsList = db.find()  

@@ -11,7 +11,9 @@ from config import logger, ConnectDatabase
 
 
 class Concerts:
-    """Concert Display Commands"""
+    """
+    Concert Command Cog
+    """
     def __init__(self, bot):
         self.bot = bot
         self.api = '2.0'
@@ -33,7 +35,9 @@ class Concerts:
             logger.error("Could not retrieve artists from database..")
         
     async def concert_finder(self, ctx):
-        """Loop that scrapes concert data"""
+        """
+        Main control loop for request 
+        """
         while not self.bot.is_closed():
             self._is_running = True
             with ConnectDatabase(ctx.guild.name) as db:
@@ -104,14 +108,18 @@ class Concerts:
 
     @commands.group(invoke_without_command=True)
     async def concert(self, ctx):
-        """Concert related commands"""
+        """
+        Concert Finder commands
+        """
         if ctx.invoked_subcommand is None:
             raise commands.BadArgument
 
     @concert.command(hidden=True)
     @commands.has_permissions(ban_members=True)
     async def start(self, ctx):
-        """Start Concert Finder"""
+        """
+        Start Concert Finder
+        """
         with ConnectDatabase(ctx.guild.name) as db:
             self._artists = self.load_artists(ctx, db)
 
@@ -122,12 +130,16 @@ class Concerts:
     
     @concert.command()
     async def info(self, ctx):
-        """Displays the location and radius of search"""
+        """
+        Displays the location and radius info
+        """
         await ctx.send(f"Searching a {self._radius} mile radius around {self._location} for concerts")
     
     @concert.command()
     async def status(self, ctx):
-        """The current status of loop"""
+        """
+        Display if Online/Offline
+        """
         if self._is_running:
             await ctx.send('Concert Finder - Online')
         else:
@@ -136,12 +148,13 @@ class Concerts:
     @concert.command()
     @commands.has_permissions(create_instant_invite=True)
     async def add(self, ctx, *artists):
-        """Add artist(s) to look for"""
+        """
+        Add artist(s) to search
+        """
         items = []
         with ConnectDatabase(ctx.guild.name) as db:
             self._artists = self.load_artists(ctx, db)        
         
-        #TODO TURN THIS INTO LIST COMPREHENSION OR CONDENSE IT
         for artist in artists:
             try:
                 if artist in self._artists:
@@ -167,7 +180,9 @@ class Concerts:
     @concert.command()
     @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *artists):
-        """Remove artist(s) from list"""        
+        """
+        Remove artist(s) from database
+        """        
         with ConnectDatabase(ctx.guild.name) as db:
             self._artists = self.load_artists(ctx, db)
             
@@ -188,20 +203,26 @@ class Concerts:
     @concert.command(hidden=True)
     @commands.is_owner()
     async def location(self, ctx, location):
-        """Changes location of search"""
+        """
+        Changes the search location
+        """
         self._location = location
         await ctx.send(f"Location setting has been changed to {self._location}")
     
     @concert.command(hidden=True)
     @commands.is_owner()
     async def radius(self, ctx, radius: int):
-        """Changes the search radius"""
+        """
+        Changes the search radius
+        """
         self._radius = str(radius) if radius <= 150 else '150'
         await ctx.send(f"Radius setting has been changed to {self._radius}")
         
     @concert.command(name="list")
     async def _list(self, ctx):
-        """List your saved artists"""
+        """
+        List of saved artists
+        """
         with ConnectDatabase(ctx.guild.name) as db:
             self._artists = self.load_artists(ctx, db)
         

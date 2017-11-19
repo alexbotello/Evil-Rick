@@ -31,7 +31,9 @@ def get_ytdl(id):
 
 class VoiceConnection:
     def __init__(self, bot, guild):
-        """ Represents a discord voice client """
+        """ 
+        Represents a discord voice client 
+        """
         self.bot = bot
         self.voice = None
         self.guild = guild
@@ -53,7 +55,10 @@ class VoiceConnection:
             await asyncio.sleep(60 * 60) # 1 hour
 
 class Sounds:
-    """ Sound related commands for Evil Rick """
+    """ 
+    Sound Command Cog 
+    """
+    # Cooldown parameters
     rate = 1
     per = 4.0
 
@@ -100,7 +105,9 @@ class Sounds:
         state.voice = voice
 
     async def on_voice_state_update(self, member, before, after):
-        """ Greets a user who joins the voice channel"""
+        """ 
+        Automatically greets a user who joins the voice channel
+        """
         tim = 142914172089401344
         state = self.get_voice_state(member.guild)
         try:
@@ -134,7 +141,9 @@ class Sounds:
     @commands.command()
     @commands.has_permissions(ban_members=True)
     async def join(self, ctx, *, channel : commands.VoiceChannelConverter):
-        """Specify a channel for the bot to join """
+        """
+        Specify a channel for the bot to join
+        """
         try:
             await self.create_voice_client(channel)
         except discord.ClientException:
@@ -145,7 +154,9 @@ class Sounds:
     @commands.command(no_pm=True)
     @commands.has_permissions(ban_members=True)
     async def summon(self, ctx):
-        """Summons the bot to join your voice channel."""
+        """
+        Summons the bot to your voice channel
+        """
         channel = ctx.author.voice.channel
         if channel is None:
             await ctx.send('You are not in a voice channel.')
@@ -156,21 +167,13 @@ class Sounds:
         else:
             await state.voice.move_to(channel)
 
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def clear(self, ctx):
-        """ Clear downloaded youtube files """
-        state = self.get_voice_state(ctx.guild)
-        try:
-            state.clear_data(ctx.guild.id)
-        except FileNotFoundError:
-            await ctx.author.send("No audio files to be cleared...")
-
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def stfu(self, ctx):
-        """SHUT THE FUCK UP!"""
+        """
+        stfu
+        """
         url = 'https://www.youtube.com/watch?v=wQYob6dpTTk'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -188,7 +191,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def pump(self, ctx):
-        """I'm here to pump you up"""
+        """
+        Get pumped up
+        """
         url = 'https://youtu.be/BgWd1dcODHU?t=10'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -206,7 +211,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def listen(self, ctx):
-        """Listen here you beautiful bitch...."""
+        """
+        Listen here you beautiful bitch....
+        """
         url = 'https://www.youtube.com/watch?v=Jsi5VTzJpPw'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -224,7 +231,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def plums(self, ctx):
-        """...a nice bluish hue"""
+        """
+        ...a nice bluish hue
+        """
         url = 'https://www.youtube.com/watch?v=7cIAcXpUuS0'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -242,7 +251,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def hadtosay(self, ctx):
-        """Shiiiiit, Negro! That's all you had to say"""
+        """
+        Shiiiiit, Negro! That's all you had to say
+        """
         url = "https://www.youtube.com/watch?v=hRb7-3kebUQ"
         state = self.get_voice_state(ctx.guild)
         try:
@@ -260,7 +271,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def omg(self, ctx):
-        """Oh my god, who the hell cares?"""
+        """
+        Oh my god, who the hell cares?
+        """
         url = 'https://www.youtube.com/watch?v=RFZrzg62Zj0'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -278,7 +291,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def damn(self, ctx):
-        """DAAAAAMMMMMMMMMNNNNN!"""
+        """
+        Daaaaaammmmmmmnnnnnn!
+        """
         url = "https://www.youtube.com/watch?v=w1EHH0_CqqU"
         state = self.get_voice_state(ctx.guild)
         try:
@@ -296,7 +311,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def dominate(self, ctx):
-        """Dominating"""
+        """
+        Dominating!
+        """
         url = 'https://www.youtube.com/watch?v=tq65HEqNq-8'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -314,7 +331,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def wub(self, ctx):
-        """Wubba Lubba Dub Dub"""
+        """
+        Wubba Lubba Dub Dub
+        """
         url = 'https://www.youtube.com/watch?v=PAhoNoQ91_c'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -332,7 +351,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def pickle(self, ctx):
-        """I'm Pickle Rick!"""
+        """
+        I'm pickle rick!
+        """
         url = 'https://www.youtube.com/watch?v=Ij7ayjBaNhc'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -350,7 +371,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def gold(self, ctx):
-        """I Love Gold"""
+        """
+        I love gold
+        """
         url = 'https://www.youtube.com/watch?v=DOFAnpb8I3E'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -368,7 +391,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def bitch(self, ctx):
-        """Like A Bitch"""
+        """
+        Does he look like a bitch?
+        """
         url = 'https://www.youtube.com/watch?v=koCAtBJA5XU'
         state = self.get_voice_state(ctx.guild)
         try:
@@ -386,7 +411,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def leeroy(self, ctx):
-        """....jenkins!"""
+        """
+        ....jenkins!
+        """
         url = "https://www.youtube.com/watch?v=yOMj7WttkOA"
         state = self.get_voice_state(ctx.guild)
         try:
@@ -404,7 +431,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def ree(self, ctx):
-        """REEEEEEEEE!"""
+        """
+        REEEEEEEEE!
+        """
         url = "https://www.youtube.com/watch?v=cLBq9vrWGuE"
         state = self.get_voice_state(ctx.guild)
         try:
@@ -422,7 +451,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def horny(self, ctx):
-        """DO I MAKE YOU RANDY!?!"""
+        """
+        Do I make you horny, baby?
+        """
         url = "https://www.youtube.com/watch?v=gXlIymq7ofE"
         state = self.get_voice_state(ctx.guild)
         try:
@@ -440,7 +471,9 @@ class Sounds:
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
     async def triple(self, ctx):
-        """Oh baby a triple, oh yeah!"""
+        """
+        Oh baby a triple, oh yeah!
+        """
         url = "https://www.youtube.com/watch?v=13VFfsJTLdc"
         state = self.get_voice_state(ctx.guild)
         try:

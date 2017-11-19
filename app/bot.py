@@ -24,7 +24,9 @@ for extension in initial_extentions:
 
 @bot.event
 async def on_ready():
-    """Logs bot credentials for successful login"""
+    """
+    Logs bot credentials on successful startup
+    """
     users = str(len(set(bot.get_all_members())))
     servers = str(len(bot.guilds))
     channels = str(len(set(bot.get_all_channels())))
@@ -59,7 +61,9 @@ async def send_cmd_help(ctx):
 @bot.command()
 @commands.cooldown(1, 20.0, type=commands.BucketType.guild)
 async def roll(ctx):
-     """Roll the dice"""
+     """
+     Roll the dice
+     """
      value = random.randrange(0, 101)
      user = ctx.author.display_name
      await ctx.send(f"{user}: **{value}**")
