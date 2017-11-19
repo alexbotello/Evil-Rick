@@ -41,13 +41,16 @@ class VoiceConnection:
         await self.bot.wait_until_ready()
         counter = 0
         while not self.bot.is_closed():
-            counter += 1
-            logger.info(f"CLEARED YOUTUBE DATA: {counter}")
-            if id is None:
-                shutil.rmtree('commands/sounds')
-            else:
-                shutil.rmtree(f"commands/sounds/{id}")
-            await asyncio.sleep(60 * 120) # 2 hours
+            try:    
+                if id is None:
+                    shutil.rmtree('commands/sounds')
+                else:
+                    shutil.rmtree(f"commands/sounds/{id}")
+                counter += 1
+                logger.info(f"CLEARED YOUTUBE DATA: {counter}")
+            except FileNotFoundError:
+                logger.info(f"No Youtube Data Detected")
+            await asyncio.sleep(60 * 60) # 1 hour
 
 class Sounds:
     """ Sound related commands for Evil Rick """
