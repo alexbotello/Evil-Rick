@@ -1,6 +1,6 @@
 import json
 import datetime
-import requests
+import aiohttp
 import pymongo
 import discord
 import asyncio
@@ -16,7 +16,6 @@ class Concerts:
         self.bot = bot
         self.api = '2.0'
         self._artists = None
-        self.is_running = False
         self._radius = settings.RADIUS
         self._location = settings.LOCATION
         self.id = settings.ID
@@ -35,7 +34,6 @@ class Concerts:
     async def concert_finder(self, ctx):
         """Loop that scrapes concert data"""
         while not self.bot.is_closed():
-            self.is_running = True
             with ConnectDatabase(ctx.guild.name) as db:
                 all_concerts = await self.find_all_concerts(db)
 
@@ -45,8 +43,7 @@ class Concerts:
                 await ctx.send(embed=image)
                 await ctx.send(concert['title'] + '\n' + concert['date'])
                 await asyncio.sleep(2)
-            await asyncio.sleep(60 * 500)
-            #await asyncio.sleep(30)
+            await asyncio.sleep(60 * 300) # 5 Hours
     
     async def find_all_concerts(self, db):
         """
@@ -61,38 +58,39 @@ class Concerts:
             param = {'app_id': settings.ID, 'api_version': self.api,
                     'location': self._location, 'radius': self._radius,
                     'format': 'json'}
-            resp = requests.get(URL, params=param)
-            if resp.status_code != 200:
-                raise ValueError(f'{resp.status_code} response code')
-            json_data = json.loads(resp.text)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(URL, params=param) as resp:
+                    if resp.status != 200:
+                        raise ValueError(f'{resp.status} response code')
+                    json_data = await resp.json()
 
-            old_result_found = 0
-            new_results_found = 0
-            for event in json_data:
-                concert = db.find_one({'_id': event['id']})
-                if concert:
-                    if concert['datetime'] < self.date:
-                        try:
-                            db.delete_one(concert)
-                        except pymongo.errors.OperationFailure:
-                            logger.error('Error removing outdated concert from database...')
-                    else:
-                        old_result_found += 1
-                else:
-                    concert = {
-                        "_id": event['id'],
-                        "title": event['title'],
-                        "date": event['formatted_datetime'],
-                        'artist': event['artists'][0]['name'],
-                        'image': event['artists'][0]['image_url'],
-                        'datetime': event['datetime']
-                    }
-                    try:
-                        db.insert_one(concert)
-                        new_results_found += 1
-                        results.append(concert)
-                    except pymongo.errors.OperationFailure:
-                        logger.error('Error inserting concert into database...')
+                    old_result_found = 0
+                    new_results_found = 0
+                    for event in json_data:
+                        concert = db.find_one({'_id': event['id']})
+                        if concert:
+                            if concert['datetime'] < self.date:
+                                try:
+                                    db.delete_one(concert)
+                                except pymongo.errors.OperationFailure:
+                                    logger.error('Error removing outdated concert from database...')
+                            else:
+                                old_result_found += 1
+                        else:
+                            concert = {
+                                "_id": event['id'],
+                                "title": event['title'],
+                                "date": event['formatted_datetime'],
+                                'artist': event['artists'][0]['name'],
+                                'image': event['artists'][0]['image_url'],
+                                'datetime': event['datetime']
+                            }
+                            try:
+                                db.insert_one(concert)
+                                new_results_found += 1
+                                results.append(concert)
+                            except pymongo.errors.OperationFailure:
+                                logger.error('Error inserting concert into database...')
 
             if json_data == []:
                 logger.info(f'Found No Results For {artist}')
