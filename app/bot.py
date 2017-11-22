@@ -10,7 +10,7 @@ from discord.ext import commands
 description = "A discord bot created by a Coconut"
 
 initial_extentions = ('commands.admin', 'commands.concert', 'commands.tags',
-                      'commands.sounds')
+                      'commands.sounds', 'commands.misc')
 
 bot = commands.Bot(command_prefix='?', description=description, pm_help=True,
                        help_attr=dict(hidden=True), formatter=commands.HelpFormatter())
@@ -57,17 +57,6 @@ async def send_cmd_help(ctx):
         pages = await bot.formatter.format_help_for(ctx, ctx.command)
         for page in pages:
             await ctx.send(page)
-
-@bot.command()
-@commands.cooldown(1, 20.0, type=commands.BucketType.guild)
-async def roll(ctx):
-     """
-     Roll the dice
-     """
-     value = random.randrange(0, 101)
-     user = ctx.author.display_name
-     await ctx.send(f"{user}: **{value}**")
-
 
 if __name__ == "__main__":
     bot.run(settings.TOKEN)
