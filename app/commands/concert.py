@@ -1,8 +1,8 @@
 import json
 import datetime
-import aiohttp
 import pymongo
 import discord
+import aiohttp
 import asyncio
 import settings
 from discord.ext import commands
@@ -22,7 +22,7 @@ class Concerts:
         self._location = settings.LOCATION
         self.id = settings.ID
         self._url = settings.BIT_URL
-        self._is_running = False
+        self.bot.loop.create_task(self.concert_finder()) # Concert Scraper Background Task
  
     def load_artists(self, ctx, db):
         try:
@@ -34,20 +34,26 @@ class Concerts:
         except pymongo.errors.OperationFailure:
             logger.error("Could not retrieve artists from database..")
         
-    async def concert_finder(self, ctx):
+    async def concert_finder(self):
         """
-        Main control loop for request 
+        Main control loop for request
         """
+        await self.bot.wait_until_ready()
+
+        channel = discord.utils.get(self.bot.get_all_channels(), 
+                        guild__name='Titty Tavern', name='concerts')
+        
         while not self.bot.is_closed():
-            self._is_running = True
-            with ConnectDatabase(ctx.guild.name) as db:
+            with ConnectDatabase(channel.guild.name) as db:
+                if self._artists is None:
+                    self._artists = self.load_artists(channel, db)
                 all_concerts = await self.find_all_concerts(db)
 
             for concert in all_concerts:
                 image = discord.Embed(colour=discord.Colour.default())
                 image.set_image(url=concert['image'])
-                await ctx.send(embed=image)
-                await ctx.send(concert['title'] + '\n' + concert['date'])
+                await channel.send(embed=image)
+                await channel.send(concert['title'] + '\n' + concert['date'])
                 await asyncio.sleep(2)
             await asyncio.sleep(60 * 300) # 5 Hours
     
@@ -101,9 +107,9 @@ class Concerts:
                 logger.info(f'Found {old_result_found} posted result and ' 
                             f'{new_results_found} new results for {artist}')
             else:
-                logger.info(f'Found No Results For {artist}')
-                
-        logger.info("Scrape was completed")
+                logger.info(f"Found No Results for {artist}")
+
+        logger.info(f'Concert Scrape Completed: {datetime.datetime.now().isoformat()}')
         return results
 
     @commands.group(invoke_without_command=True)
@@ -114,20 +120,6 @@ class Concerts:
         if ctx.invoked_subcommand is None:
             raise commands.BadArgument
 
-    @concert.command(hidden=True)
-    @commands.has_permissions(ban_members=True)
-    async def start(self, ctx):
-        """
-        Start Concert Finder
-        """
-        with ConnectDatabase(ctx.guild.name) as db:
-            self._artists = self.load_artists(ctx, db)
-
-        if self._artists is None:
-            await ctx.send("Please add artists first using '?concert add <artists>'")
-        else:
-            await self.concert_finder(ctx)
-    
     @concert.command()
     async def info(self, ctx):
         """
@@ -141,9 +133,9 @@ class Concerts:
         Display if Online/Offline
         """
         if self._is_running:
-            await ctx.send('Concert Finder - Online')
+            await ctx.send("Concert Finder - Online")
         else:
-            await ctx.send('Concert Finder - Offline')
+            await ctx.send("Concert Finder - Offline")
 
     @concert.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -182,7 +174,7 @@ class Concerts:
     async def remove(self, ctx, *artists):
         """
         Remove artist(s) from database
-        """        
+        """
         with ConnectDatabase(ctx.guild.name) as db:
             self._artists = self.load_artists(ctx, db)
             
