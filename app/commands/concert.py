@@ -128,16 +128,6 @@ class Concerts:
         await ctx.send(f"Searching a {self._radius} mile radius around {self._location} for concerts")
     
     @concert.command()
-    async def status(self, ctx):
-        """
-        Display if Online/Offline
-        """
-        if self._is_running:
-            await ctx.send("Concert Finder - Online")
-        else:
-            await ctx.send("Concert Finder - Offline")
-
-    @concert.command()
     @commands.has_permissions(create_instant_invite=True)
     async def add(self, ctx, *artists):
         """
@@ -184,9 +174,9 @@ class Concerts:
             
             db.update_one({'id': ctx.guild.id}, {"$set": {'artists': self._artists}})
         
-        if values == [] and typos:
+        if typos and not values:
             await ctx.send(f"{typos} is not in list. Typo?")
-        elif typos and values != []:
+        elif typos and values:
             logger.error(f"Values: {values}")
             await ctx.send(f"{values} has been removed\n{typos} is not in list. Typo?")
         else:
