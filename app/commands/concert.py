@@ -35,7 +35,7 @@ class Concerts:
     
     @concert.command()
     @commands.has_permissions(create_instant_invite=True)
-    async def add(self, ctx, *artists):
+    async def add(self, ctx, *, artists):
         """Add artist(s) to search"""
         guild = ctx.guild.name
         with ConcertDatabase(guild) as db:
@@ -44,7 +44,7 @@ class Concerts:
 
     @concert.command()
     @commands.has_permissions(ban_members=True)
-    async def remove(self, ctx, *artists):
+    async def remove(self, ctx, *, artists):
         """Remove artist(s) from database"""
         guild = ctx.guild.name
         with ConcertDatabase(guild) as db:
