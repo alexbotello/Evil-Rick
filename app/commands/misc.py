@@ -67,5 +67,6 @@ class Misc:
                 href = href.replace(key, val)
         await ctx.send(href)
 
+  
 def setup(bot):
     bot.add_cog(Misc(bot))

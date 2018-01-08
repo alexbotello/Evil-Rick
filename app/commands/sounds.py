@@ -8,17 +8,6 @@ import settings
 from config import logger
 from discord.ext import commands
 
-OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll',
-             'libopus.so.0', 'libopus.0.dylib', 'opus']
-
-for opus_lib in OPUS_LIBS:
-    try:
-        discord.opus.load_opus(opus_lib)
-    except OSError:
-        pass
-
-logger.info(f"Opus Library Loaded: {discord.opus.is_loaded()}")
-
 ytdl_format_options = {"format": "bestaudio/best", "extractaudio": True, "audioformat": "mp3", 
                        "noplaylist": True, "nocheckcertificate": True, "ignoreerrors": False, 
                        "logtostderr": False, "quiet": True, "no_warnings": True, "default_search": "auto", 
@@ -29,21 +18,36 @@ def get_ytdl(id):
     format['outtmpl'] = "commands/sounds/{}/%(id)s.mp3".format(id)
     return youtube_dl.YoutubeDL(format)
 
+
+class OpusLoader:
+    def __init__(self):
+        self.opus_libs = [ 'libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll',
+                            'libopus.so.0', 'libopus.0.dylib', 'opus' ]
+        self.load_opus()
+        logger.info(f"Opus Library Loaded: {discord.opus.is_loaded()}")
+
+    def load_opus(self):
+        for opus_lib in self.opus_libs:
+            try:
+                discord.opus.load_opus(opus_lib)
+            except OSError:
+                pass
+
 class VoiceConnection:
+    """
+    Represents a discord voice client
+    """
     def __init__(self, bot, guild):
-        """ 
-        Represents a discord voice client 
-        """
         self.bot = bot
         self.voice = None
         self.guild = guild
-        self.bot.loop.create_task(self._clear_data())
-    
-    async def _clear_data(self, id=None):
+        self.bot.loop.create_task(self.clear_data())
+  
+    async def clear_data(self, id=None):
         await self.bot.wait_until_ready()
         counter = 0
         while not self.bot.is_closed():
-            try:    
+            try:
                 if id is None:
                     shutil.rmtree('commands/sounds')
                 else:
@@ -52,22 +56,22 @@ class VoiceConnection:
                 logger.info(f"CLEARED YOUTUBE DATA: {counter}")
             except FileNotFoundError:
                 logger.info(f"No Youtube Data Detected")
-            await asyncio.sleep(60 * 60) # 1 hour
+            await asyncio.sleep(60*60) # 1 Hour
 
 class Sounds:
     """ 
-    Sound Command Cog 
+    Sound Command Cog
     """
     # Cooldown parameters
     rate = 1
     per = 4.0
 
     def __init__(self, bot):
+        opus = OpusLoader()
         self.bot = bot
         self.voice_states = {}
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
                           'https://www.youtube.com/watch?v=9SL35HaJ2Ys',
-                          'https://www.youtube.com/watch?v=XuI5sV_-kx0',
                           'https://youtu.be/B7lgrFKI_L8']
     @staticmethod
     def download_video(id, url):
@@ -103,40 +107,32 @@ class Sounds:
         voice = await channel.connect(reconnect=True)
         state = self.get_voice_state(channel.guild)
         state.voice = voice
-
+    
     async def on_voice_state_update(self, member, before, after):
-        """ 
+        """
         Automatically greets a user who joins the voice channel
         """
         tim = 142914172089401344
         state = self.get_voice_state(member.guild)
-        try:
-            if state.voice.channel == member.voice.channel:
-                if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
-                    pass
-                elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
-                    pass
-                elif after.afk or before.afk:
-                    pass
-                else: 
-                    if member.id == tim:
-                        url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
-                        audio = self.download_video(member.guild.id, url)
-                        state.voice.play(audio)
-                    else:
-                        url = random.choice(self.greetings)
-                        audio = self.download_video(member.guild.id, url)
-                        state.voice.play(audio)
-                
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            member.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            logger.error('An error occured while streaming audio...')
-        
-        except AttributeError:
-            logger.info('Skipping Voice State Update On Initial Join')
+        if state.voice.channel == member.voice.channel:
+            if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
+                pass
+            elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
+                pass
+            elif after.afk or before.afk:
+                pass
+            else:
+                if member.id == tim:
+                    url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
+                    self.play_sound(member, url)
+                else:
+                    url = random.choice(self.greetings)
+                    self.play_sound(member, url)
+    
+    def play_sound(self, ctx, url):
+        state = self.get_voice_state(ctx.guild)
+        audio = self.download_video(ctx.guild.id, url)
+        state.voice.play(audio)
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
@@ -144,12 +140,7 @@ class Sounds:
         """
         Specify a channel for the bot to join
         """
-        try:
-            await self.create_voice_client(channel)
-        except discord.ClientException:
-            await ctx.send('Already in a voice channel...')
-        except discord.InvalidArgument:
-            await ctx.send('This is not a voice channel...')
+        await self.create_voice_client(channel)
 
     @commands.command(no_pm=True)
     @commands.has_permissions(ban_members=True)
@@ -175,17 +166,7 @@ class Sounds:
         stfu
         """
         url = 'https://www.youtube.com/watch?v=wQYob6dpTTk'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-        
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
 
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -195,17 +176,8 @@ class Sounds:
         Get pumped up
         """
         url = 'https://youtu.be/BgWd1dcODHU?t=10'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-        
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
+
 
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -215,17 +187,8 @@ class Sounds:
         Listen here you beautiful bitch....
         """
         url = 'https://www.youtube.com/watch?v=Jsi5VTzJpPw'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-        
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
+
         
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -235,18 +198,8 @@ class Sounds:
         ...a nice bluish hue
         """
         url = 'https://www.youtube.com/watch?v=7cIAcXpUuS0'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
+        self.play_sound(ctx, url)
 
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -255,18 +208,8 @@ class Sounds:
         Shiiiiit, Negro! That's all you had to say
         """
         url = "https://www.youtube.com/watch?v=hRb7-3kebUQ"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
+        self.play_sound(ctx, url)
 
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -275,17 +218,7 @@ class Sounds:
         Oh my god, who the hell cares?
         """
         url = 'https://www.youtube.com/watch?v=RFZrzg62Zj0'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
 
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -295,17 +228,7 @@ class Sounds:
         Daaaaaammmmmmmnnnnnn!
         """
         url = "https://www.youtube.com/watch?v=w1EHH0_CqqU"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
         
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -315,18 +238,8 @@ class Sounds:
         Dominating!
         """
         url = 'https://www.youtube.com/watch?v=tq65HEqNq-8'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
+        self.play_sound(ctx, url)
 
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -335,17 +248,7 @@ class Sounds:
         Wubba Lubba Dub Dub
         """
         url = 'https://www.youtube.com/watch?v=PAhoNoQ91_c'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
 
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -355,18 +258,8 @@ class Sounds:
         I'm pickle rick!
         """
         url = 'https://www.youtube.com/watch?v=Ij7ayjBaNhc'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
+        self.play_sound(ctx, url)
 
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -375,18 +268,8 @@ class Sounds:
         I love gold
         """
         url = 'https://www.youtube.com/watch?v=DOFAnpb8I3E'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
+        self.play_sound(ctx, url)
 
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")   
-        
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -395,17 +278,7 @@ class Sounds:
         Does he look like a bitch?
         """
         url = 'https://www.youtube.com/watch?v=koCAtBJA5XU'
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")  
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
 
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -415,18 +288,8 @@ class Sounds:
         ....jenkins!
         """
         url = "https://www.youtube.com/watch?v=yOMj7WttkOA"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")  
+        self.play_sound(ctx, url)
 
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -435,18 +298,8 @@ class Sounds:
         REEEEEEEEE!
         """
         url = "https://www.youtube.com/watch?v=cLBq9vrWGuE"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")  
+        self.play_sound(ctx, url)
 
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
     @commands.cooldown(rate, per, type=commands.BucketType.guild)
@@ -455,17 +308,7 @@ class Sounds:
         Do I make you horny, baby?
         """
         url = "https://www.youtube.com/watch?v=gXlIymq7ofE"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...")  
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
+        self.play_sound(ctx, url)
         
     @commands.command()
     @commands.has_permissions(create_instant_invite=True)
@@ -475,18 +318,7 @@ class Sounds:
         Oh baby a triple, oh yeah!
         """
         url = "https://www.youtube.com/watch?v=13VFfsJTLdc"
-        state = self.get_voice_state(ctx.guild)
-        try:
-            audio = self.download_video(ctx.guild.id, url)
-            state.voice.play(audio)
-        
-        except youtube_dl.utils.DownloadError as error:
-            logger.error(f"{error}: failed to download link")
-            ctx.send("Failed to download link from youtube...") 
-
-        except discord.ClientException:
-            ctx.send('An error occured while streaming audio...')
-        
+        self.play_sound(ctx, url)
 
 def setup(bot):
     bot.add_cog(Sounds(bot))

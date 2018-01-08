@@ -1,8 +1,6 @@
-import time
-import random
-import asyncio
 import discord
 import settings
+import errors
 from config import logger
 from discord.ext import commands
 
@@ -42,11 +40,35 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     logger.error(error)
+    error = getattr(error, 'original', error)
+    
     if isinstance(error, commands.MissingRequiredArgument):
         await send_cmd_help(ctx)
 
     elif isinstance(error, commands.BadArgument):
         await send_cmd_help(ctx)
+    
+    elif isinstance(error, errors.DuplicateArtist):
+        await ctx.send("Artist has already been saved")
+    
+    elif isinstance(error, errors.MissingArtist):
+        await ctx.send("Cannot remove an artist that has not been saved")
+
+    elif isinstance(error, errors.NoTagFound):
+        await ctx.send("No tag(s) was found...")
+    
+    elif isinstance(error, errors.TagAlreadyExists):
+        await ctx.send("Tag already exists...")
+    
+    elif isinstance(error, discord.ClientException):
+        await ctx.send("Already connected to a voice channel")
+    
+    elif isinstance(error, discord.Forbidden):
+        await ctx.send("You do not have permission to use this command")
+    
+    elif isinstance(error, discord.HTTPException):
+        await ctx.send("You can only bulk delete messages that "
+                        "are under 14 days old")
     
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
