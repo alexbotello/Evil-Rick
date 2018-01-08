@@ -95,7 +95,7 @@ class Concerts:
     
     def generate_channel(self):
         return discord.utils.get(self.bot.get_all_channels(), 
-                    guild__name='Testing', name='general')
+                    guild__name='Titty Tavern', name='concerts')
     
     async def get_concerts(self):
         guild = self.channel.guild.name
