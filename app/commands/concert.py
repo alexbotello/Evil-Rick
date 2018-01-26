@@ -86,8 +86,7 @@ class Concerts:
 
     async def concert_background_task(self):
         await self.bot.wait_until_ready()
-        self.channel = self.generate_channel()
-        
+
         while not self.bot.is_closed():
             concerts = await self.get_concerts()
             await self.post_concert_to_discord(concerts)
@@ -98,7 +97,9 @@ class Concerts:
                     guild__name='Titty Tavern', name='concerts')
     
     async def get_concerts(self):
+        self.channel = self.generate_channel()
         guild = self.channel.guild.name
+        
         with ConcertDatabase(guild) as db:
             artists = db.get_artists()
             request = BandsInTownRequest(artists=artists)
