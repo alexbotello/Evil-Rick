@@ -61,7 +61,7 @@ async def on_command_error(ctx, error):
         await ctx.send("Tag already exists...")
     
     elif isinstance(error, discord.ClientException):
-        await ctx.send("Already connected to a voice channel")
+        await ctx.send("Command failed. Already connected/playing")
     
     elif isinstance(error, discord.Forbidden):
         await ctx.send("You do not have permission to use this command")
