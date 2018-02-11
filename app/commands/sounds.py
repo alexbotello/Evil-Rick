@@ -112,11 +112,11 @@ class Sounds:
         """
         Automatically greets a user who joins the voice channel
         """
-        tim = {142914172089401344: 'https://www.youtube.com/watch?v=EDrMco4g8ng'}
+        timmy = {142914172089401344: 'https://www.youtube.com/watch?v=EDrMco4g8ng'}
         state = self.get_voice_state(member.guild)
         try:
             if before.channel != state.voice.channel:
-                if tim[member.id]:
+                if member.id in timmy:
                     audio = self.download_video(member.guild.id, tim[member.id])
                     state.voice.play(audio)
                 else:
