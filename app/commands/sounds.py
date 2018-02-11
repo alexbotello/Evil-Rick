@@ -264,7 +264,7 @@ class Sounds:
         """
         I love gold
         """
-        url = 'https://www.youtube.com/watch?v=DOFAnpb8I3E'
+        url = 'https://www.youtube.com/watch?v=k-COG4YTn6M'
         self.play_sound(ctx, url)
 
     @commands.command()
