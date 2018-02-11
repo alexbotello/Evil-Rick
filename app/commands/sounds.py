@@ -112,22 +112,19 @@ class Sounds:
         """
         Automatically greets a user who joins the voice channel
         """
-        tim = 142914172089401344
+        tim = {142914172089401344: 'https://www.youtube.com/watch?v=EDrMco4g8ng'}
         state = self.get_voice_state(member.guild)
-        if state.voice.channel == member.voice.channel:
-            if (after.deaf or after.self_deaf) or (before.deaf or before.self_deaf):
-                pass
-            elif (after.mute or after.self_mute) or (before.mute or before.self_mute):
-                pass
-            elif after.afk or before.afk:
-                pass
-            else:
-                if member.id == tim:
-                    url = 'https://www.youtube.com/watch?v=EDrMco4g8ng'
-                    self.play_sound(member, url)
+        try:
+            if before.channel != state.voice.channel:
+                if tim[member.id]:
+                    audio = self.download_video(member.guild.id, tim[member.id])
+                    state.voice.play(audio)
                 else:
                     url = random.choice(self.greetings)
-                    self.play_sound(member, url)
+                    audio = self.download_video(member.guild.id, url)
+                    state.voice.play(audio)                    
+        except AttributeError:
+            logger.info("Skipping Initial Voice Check")
     
     def play_sound(self, ctx, url):
         state = self.get_voice_state(ctx.guild)
