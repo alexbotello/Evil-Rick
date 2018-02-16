@@ -316,6 +316,16 @@ class Sounds:
         """
         url = "https://www.youtube.com/watch?v=13VFfsJTLdc"
         self.play_sound(ctx, url)
+    
+    @commands.command()
+    @commands.has_permissions(create_instant_invite=True)
+    @commands.cooldown(rate, per, type=commands.BucketType.guild)
+    async def sinking(self, ctx):
+        """
+        What are you sinking about?
+        """
+        url = "https://www.youtube.com/watch?v=n3XVM6NRpOg"
+        self.play_sound(ctx, url)
 
 def setup(bot):
     bot.add_cog(Sounds(bot))
