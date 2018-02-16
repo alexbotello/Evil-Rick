@@ -67,7 +67,7 @@ class Sounds:
     per = 4.0
 
     def __init__(self, bot):
-        opus = OpusLoader()
+        OpusLoader()
         self.bot = bot
         self.voice_states = {}
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
@@ -81,15 +81,8 @@ class Sounds:
         if "entries" in data:
             data = data['entries'][0]
         
-        title = data['title']
         _id = data['id']
-        duration = None
 
-        try:
-            duration = data['duration']
-        except KeyError:
-            pass
-        
         path = f"commands/sounds/{id}"
         fp = f"{path}/{_id}.mp3"
         audio = discord.FFmpegPCMAudio(fp, executable="avconv")
@@ -117,7 +110,7 @@ class Sounds:
         try:
             if before.channel != state.voice.channel:
                 if member.id in timmy:
-                    audio = self.download_video(member.guild.id, tim[member.id])
+                    audio = self.download_video(member.guild.id, timmy[member.id])
                     state.voice.play(audio)
                 else:
                     url = random.choice(self.greetings)
