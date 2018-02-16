@@ -1,5 +1,3 @@
-import discord
-import settings
 from discord.ext import commands
 from utils.formatter import block
 from utils.paginator import Pages

@@ -2,9 +2,7 @@ import random
 import shutil
 import asyncio
 import discord
-import pymongo
 import youtube_dl
-import settings
 from config import logger
 from discord.ext import commands
 
