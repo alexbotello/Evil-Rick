@@ -81,7 +81,7 @@ class Pages:
         entries = self.get_page(page)
         p = []
         for index, entry in enumerate(entries, 1 + ((page - 1) * self.per_page)):
-            p.append(f'{index}. {entry}')
+            p.append(f'{index}.\t\t{entry}\t\t\t\n')
 
         if self.maximum_pages > 1:
             if self.show_entry_count:
