@@ -1,7 +1,7 @@
 from discord.ext import commands
 from utils.formatter import block
 from utils.paginator import Pages
-from config import logger, TagDatabase
+from models import TagDatabase
 
 
 class Tags:
