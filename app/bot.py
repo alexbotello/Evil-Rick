@@ -1,8 +1,9 @@
 import discord
+from discord.ext import commands
+
 import settings
 import errors
 from config import logger
-from discord.ext import commands
 
 
 description = "A discord bot created by a Coconut"
@@ -11,7 +12,7 @@ initial_extentions = ('commands.admin', 'commands.concert', 'commands.tags',
                       'commands.sounds', 'commands.misc')
 
 bot = commands.Bot(command_prefix='?', description=description, pm_help=True,
-                       help_attr=dict(hidden=True), formatter=commands.HelpFormatter())
+                   help_attr=dict(hidden=True), formatter=commands.HelpFormatter())
 
 for extension in initial_extentions:
     try:
@@ -41,31 +42,37 @@ async def on_ready():
 async def on_command_error(ctx, error):
     logger.error(error)
     error = getattr(error, 'original', error)
-    
+
     if isinstance(error, commands.MissingRequiredArgument):
         await send_cmd_help(ctx)
 
     elif isinstance(error, commands.BadArgument):
         await send_cmd_help(ctx)
-    
+
     elif isinstance(error, errors.DuplicateArtist):
         await ctx.send("Artist has already been saved")
-    
+
     elif isinstance(error, errors.MissingArtist):
         await ctx.send("Cannot remove an artist that has not been saved")
 
-    elif isinstance(error, errors.NoTagFound):
-        await ctx.send("No tag(s) was found...")
-    
+    elif isinstance(error, errors.NotFound):
+        await ctx.send("Nothing was found...")
+
     elif isinstance(error, errors.TagAlreadyExists):
         await ctx.send("Tag already exists...")
-    
+
+    elif isinstance(error, errors.SoundAlreadyExists):
+        await ctx.send("A sound with that name already exists...")
+
     elif isinstance(error, discord.ClientException):
         await ctx.send("Command failed. Already connected/playing")
-    
+
     elif isinstance(error, discord.Forbidden):
         await ctx.send("You do not have permission to use this command")
-    
+
+    elif isinstance(error, AttributeError):
+        await ctx.send("Not in a voice channel...")
+
     elif isinstance(error, discord.HTTPException):
         await ctx.send("You can only bulk delete messages that "
                         "are under 14 days old")
