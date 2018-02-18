@@ -13,15 +13,21 @@ class MissingArtist(commands.CommandError):
     """
     pass
 
-class NoTagFound(commands.CommandError):
+class NotFound(commands.CommandError):
     """
-    Exception raised when tag was not found
+    Exception raised when item was not found
     """
     pass
 
 class TagAlreadyExists(commands.CommandError):
     """
     Exception raised when tag already exists
+    """
+    pass
+
+class SoundAlreadyExists(commands.CommandError):
+    """
+    Exception raised when sound already exists
     """
     pass
     
