@@ -1,15 +1,25 @@
 import random
 import shutil
 import asyncio
+from operator import itemgetter
+
 import discord
 import youtube_dl
-from config import logger
 from discord.ext import commands
 
-ytdl_format_options = {"format": "bestaudio/best", "extractaudio": True, "audioformat": "mp3", 
-                       "noplaylist": True, "nocheckcertificate": True, "ignoreerrors": False, 
-                       "logtostderr": False, "quiet": True, "no_warnings": True, "default_search": "auto", 
-                       "source_address": "0.0.0.0", "preferredcodec": "libmp3lame"}
+from config import logger
+from models import SoundDatabase
+from utils.paginator import Pages
+
+
+ytdl_format_options = {
+    "format": "bestaudio/best", "extractaudio": True, "audioformat": "mp3",
+    "noplaylist": True, "nocheckcertificate": True, "ignoreerrors": False,
+    "logtostderr": False, "quiet": True, "no_warnings": True,
+    "default_search": "auto", "source_address": "0.0.0.0",
+    "preferredcodec": "libmp3lame"
+}
+
 
 def get_ytdl(id):
     format = ytdl_format_options
@@ -19,8 +29,9 @@ def get_ytdl(id):
 
 class OpusLoader:
     def __init__(self):
-        self.opus_libs = [ 'libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll',
-                            'libopus.so.0', 'libopus.0.dylib', 'opus' ]
+        self.opus_libs = ['libopus-0.x86.dll', 'libopus-0.x64.dll',
+                          'libopus-0.dll', 'libopus.so.0', 'libopus.0.dylib',
+                          'opus']
         self.load_opus()
         logger.info(f"Opus Library Loaded: {discord.opus.is_loaded()}")
 
@@ -31,6 +42,7 @@ class OpusLoader:
             except OSError:
                 pass
 
+
 class VoiceConnection:
     """
     Represents a discord voice client
@@ -40,7 +52,7 @@ class VoiceConnection:
         self.voice = None
         self.guild = guild
         self.bot.loop.create_task(self.clear_data())
-  
+
     async def clear_data(self, id=None):
         await self.bot.wait_until_ready()
         counter = 0
@@ -54,7 +66,8 @@ class VoiceConnection:
                 logger.info(f"CLEARED YOUTUBE DATA: {counter}")
             except FileNotFoundError:
                 logger.info(f"No Youtube Data Detected")
-            await asyncio.sleep(60*60) # 1 Hour
+            await asyncio.sleep(60*60)  # 1 Hour
+
 
 class Sounds:
     """ 
@@ -74,7 +87,7 @@ class Sounds:
     @staticmethod
     def download_video(id, url):
         ytdl = get_ytdl(id)
-        data =  ytdl.extract_info(url, download=True)
+        data = ytdl.extract_info(url, download=True)
         
         if "entries" in data:
             data = data['entries'][0]
@@ -146,177 +159,78 @@ class Sounds:
         else:
             await state.voice.move_to(channel)
 
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def stfu(self, ctx):
+    @commands.group(invoke_without_command=True)
+    async def s(self, ctx, *, name):
         """
-        stfu
+        Plays a specific sound clip
         """
-        url = 'https://www.youtube.com/watch?v=wQYob6dpTTk'
-        self.play_sound(ctx, url)
+        guild = ctx.guild.id
+        with SoundDatabase(str(guild) + "/sounds") as db:
+            sound = db.find_sound(name)
+            self.play_sound(ctx, sound["url"])
+            db.used(sound)
 
-    @commands.command()
+    @s.command()
     @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def pump(self, ctx):
+    async def create(self, ctx, name, *, url):
         """
-        Get pumped up
+        Creates a sound clip for the server
         """
-        url = 'https://youtu.be/BgWd1dcODHU?t=10'
-        self.play_sound(ctx, url)
+        guild = ctx.guild.id
+        with SoundDatabase(str(guild) + "/sounds") as db:
+            sound = {
+                "name": name,
+                "url": str(url),
+                "creator": ctx.author.display_name,
+                "times_used": 0
+            }
+            db.create_sound(sound)
+            msg = f"`?s {name}` has been created by {sound['creator']}"
+            await ctx.message.delete()
+            await ctx.send(msg)
 
+    @s.command()
+    @commands.has_permissions(ban_members=True)
+    async def delete(self, ctx, *, name):
+        """
+        Delete a specific sound clip
+        """
+        guild = ctx.guild.id
+        with SoundDatabase(str(guild) + "/sounds") as db:
+            db.delete_sound(name)
+            msg = f"`?s {name}` has been removed"
+            await ctx.send(msg)
 
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def listen(self, ctx):
+    @s.command(name="all")
+    async def _all(self, ctx):
         """
-        Listen here you beautiful bitch....
+        List all server tags
         """
-        url = 'https://www.youtube.com/watch?v=Jsi5VTzJpPw'
-        self.play_sound(ctx, url)
+        guild = ctx.guild.id
+        with SoundDatabase(str(guild) + "/sounds") as db:
+            sounds = db.get_all_sounds()
+            sounds = sorted([sound["name"] for sound in sounds])
 
-        
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def plums(self, ctx):
-        """
-        ...a nice bluish hue
-        """
-        url = 'https://www.youtube.com/watch?v=7cIAcXpUuS0'
-        self.play_sound(ctx, url)
+            p = Pages(ctx, entries=sounds, per_page=20)
+            await ctx.send("**All Server Sound Commands**")
+            await p.paginate()
 
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def hadtosay(self, ctx):
+    @s.command()
+    async def top(self, ctx):
         """
-        Shiiiiit, Negro! That's all you had to say
+        List top most played sounds
         """
-        url = "https://www.youtube.com/watch?v=hRb7-3kebUQ"
-        self.play_sound(ctx, url)
+        guild = ctx.guild.id
+        with SoundDatabase(str(guild) + "/sounds") as db:
+            sounds = db.get_all_sounds()
+            sounds = sorted(sounds, key=itemgetter("times_used"), reverse=True)
+            p = Pages(ctx, per_page=20,
+                      entries=[f"{sound['name']}\t-\t**{sound['times_used']}**"
+                               for sound in sounds])
 
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def omg(self, ctx):
-        """
-        Oh my god, who the hell cares?
-        """
-        url = 'https://www.youtube.com/watch?v=RFZrzg62Zj0'
-        self.play_sound(ctx, url)
+            await ctx.send("**Top Played Sounds**")
+            await p.paginate()
 
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def damn(self, ctx):
-        """
-        Daaaaaammmmmmmnnnnnn!
-        """
-        url = "https://www.youtube.com/watch?v=w1EHH0_CqqU"
-        self.play_sound(ctx, url)
-        
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def dominate(self, ctx):
-        """
-        Dominating!
-        """
-        url = 'https://www.youtube.com/watch?v=tq65HEqNq-8'
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def wub(self, ctx):
-        """
-        Wubba Lubba Dub Dub
-        """
-        url = 'https://www.youtube.com/watch?v=PAhoNoQ91_c'
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def pickle(self, ctx):
-        """
-        I'm pickle rick!
-        """
-        url = 'https://www.youtube.com/watch?v=Ij7ayjBaNhc'
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def gold(self, ctx):
-        """
-        I love gold
-        """
-        url = 'https://www.youtube.com/watch?v=k-COG4YTn6M'
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def bitch(self, ctx):
-        """
-        Does he look like a bitch?
-        """
-        url = 'https://www.youtube.com/watch?v=koCAtBJA5XU'
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def leeroy(self, ctx):
-        """
-        ....jenkins!
-        """
-        url = "https://www.youtube.com/watch?v=yOMj7WttkOA"
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def ree(self, ctx):
-        """
-        REEEEEEEEE!
-        """
-        url = "https://www.youtube.com/watch?v=cLBq9vrWGuE"
-        self.play_sound(ctx, url)
-
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def horny(self, ctx):
-        """
-        Do I make you horny, baby?
-        """
-        url = "https://www.youtube.com/watch?v=gXlIymq7ofE"
-        self.play_sound(ctx, url)
-        
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def triple(self, ctx):
-        """
-        Oh baby a triple, oh yeah!
-        """
-        url = "https://www.youtube.com/watch?v=13VFfsJTLdc"
-        self.play_sound(ctx, url)
-    
-    @commands.command()
-    @commands.has_permissions(create_instant_invite=True)
-    @commands.cooldown(rate, per, type=commands.BucketType.guild)
-    async def sinking(self, ctx):
-        """
-        What are you sinking about?
-        """
-        url = "https://www.youtube.com/watch?v=n3XVM6NRpOg"
-        self.play_sound(ctx, url)
 
 def setup(bot):
     bot.add_cog(Sounds(bot))
