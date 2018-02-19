@@ -5,7 +5,7 @@ import errors
 from discord.ext import commands
 from https import BandsInTownRequest
 from utils.formatter import block
-from config import logger, ConcertDatabase
+from models import ConcertDatabase
 
 
 class Concerts:
