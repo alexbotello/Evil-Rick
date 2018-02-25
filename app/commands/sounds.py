@@ -70,7 +70,7 @@ class VoiceConnection:
 
 
 class Sounds:
-    """ 
+    """
     Sound Command Cog
     """
     # Cooldown parameters
@@ -84,20 +84,21 @@ class Sounds:
         self.greetings = ['https://www.youtube.com/watch?v=evtmNulZAj0',
                           'https://www.youtube.com/watch?v=9SL35HaJ2Ys',
                           'https://youtu.be/B7lgrFKI_L8']
+
     @staticmethod
     def download_video(id, url):
         ytdl = get_ytdl(id)
         data = ytdl.extract_info(url, download=True)
-        
+
         if "entries" in data:
             data = data['entries'][0]
-        
+
         _id = data['id']
 
         path = f"commands/sounds/{id}"
         fp = f"{path}/{_id}.mp3"
         audio = discord.FFmpegPCMAudio(fp, executable="avconv")
-        
+
         return audio
 
     def get_voice_state(self, guild):
@@ -111,12 +112,14 @@ class Sounds:
         voice = await channel.connect(reconnect=True)
         state = self.get_voice_state(channel.guild)
         state.voice = voice
-    
+
     async def on_voice_state_update(self, member, before, after):
         """
         Automatically greets a user who joins the voice channel
         """
-        timmy = {142914172089401344: 'https://www.youtube.com/watch?v=EDrMco4g8ng'}
+        timmy = {
+            142914172089401344: 'https://www.youtube.com/watch?v=EDrMco4g8ng'
+            }
         state = self.get_voice_state(member.guild)
         try:
             if before.channel != state.voice.channel:
@@ -126,10 +129,10 @@ class Sounds:
                 else:
                     url = random.choice(self.greetings)
                     audio = self.download_video(member.guild.id, url)
-                    state.voice.play(audio)                    
+                    state.voice.play(audio)
         except AttributeError:
             logger.info("Skipping Initial Voice Check")
-    
+
     def play_sound(self, ctx, url):
         state = self.get_voice_state(ctx.guild)
         audio = self.download_video(ctx.guild.id, url)
@@ -137,7 +140,7 @@ class Sounds:
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
-    async def join(self, ctx, *, channel : commands.VoiceChannelConverter):
+    async def join(self, ctx, *, channel: commands.VoiceChannelConverter):
         """
         Specify a channel for the bot to join
         """

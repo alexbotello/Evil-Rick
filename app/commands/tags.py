@@ -5,7 +5,7 @@ from models import TagDatabase
 
 
 class Tags:
-    """ 
+    """
     Tag Command Cog
     """
     def __init__(self, bot):
@@ -20,16 +20,17 @@ class Tags:
         with TagDatabase(guild) as db:
             tag = db.get_tag(name)
             await ctx.send(tag['content'])
-    
+
     @tag.command()
     @commands.has_permissions(create_instant_invite=True)
     async def create(self, ctx, name, *, content):
-        """ 
-        Create a tag for the server 
+        """
+        Create a tag for the server
         """
         guild = ctx.guild.id
         with TagDatabase(guild) as db:
-            tag = { "name": name,
+            tag = {
+                    "name": name,
                     "content": content,
                     "creator": ctx.author.display_name
                 }
@@ -37,7 +38,7 @@ class Tags:
             msg = f"?tag {name} has been created by {tag['creator']}"
             await ctx.message.delete()
             await ctx.send(block(msg))
-            
+
     @tag.command()
     @commands.has_permissions(ban_members=True)
     async def remove(self, ctx, *, name):
@@ -49,7 +50,7 @@ class Tags:
             db.delete_tag(name)
             msg = f"'?tag {name}' has been removed"
             await ctx.send(msg)
-    
+
     @tag.command(name="all")
     async def _all(self, ctx):
         """
@@ -61,7 +62,8 @@ class Tags:
             tags = sorted([tag["name"] for tag in tags])
 
             p = Pages(ctx, entries=tags, per_page=20)
-            await p.paginate() 
+            await p.paginate()
+
 
 def setup(bot):
     bot.add_cog(Tags(bot))

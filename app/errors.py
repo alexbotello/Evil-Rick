@@ -7,11 +7,13 @@ class DuplicateArtist(commands.CommandError):
     """
     pass
 
+
 class MissingArtist(commands.CommandError):
     """
     Exception raised when an artist doesn't exist in database
     """
     pass
+
 
 class NotFound(commands.CommandError):
     """
@@ -19,15 +21,16 @@ class NotFound(commands.CommandError):
     """
     pass
 
+
 class TagAlreadyExists(commands.CommandError):
     """
     Exception raised when tag already exists
     """
     pass
 
+
 class SoundAlreadyExists(commands.CommandError):
     """
     Exception raised when sound already exists
     """
     pass
-    

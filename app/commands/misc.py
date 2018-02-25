@@ -9,7 +9,7 @@ class Misc:
     """
     def __init__(self, bot):
         self.bot = bot
-    
+
     @commands.command()
     @commands.cooldown(1, 20.0, type=commands.BucketType.guild)
     async def roll(self, ctx):
@@ -19,7 +19,7 @@ class Misc:
         value = random.randrange(0, 101)
         user = ctx.author.display_name
         await ctx.send(f"{user}: **{value}**")
-    
+
     @commands.command()
     @commands.cooldown(1, 3.0, type=commands.BucketType.guild)
     async def g(self, ctx, *, query):
@@ -29,6 +29,6 @@ class Misc:
         result = await GoogleSearch(query)()
         await ctx.send(result)
 
-  
+
 def setup(bot):
     bot.add_cog(Misc(bot))

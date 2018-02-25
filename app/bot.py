@@ -21,6 +21,7 @@ for extension in initial_extentions:
     except Exception as e:
         logger.warn(f"Failed to load extention {extension}\n{type(e).__name__}: {e}")
 
+
 @bot.event
 async def on_ready():
     """
@@ -37,6 +38,7 @@ async def on_ready():
     logger.info(f"Users: {users}")
     logger.info(f"Servers: {servers}")
     logger.info(f"Channels: {channels}")
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -75,8 +77,9 @@ async def on_command_error(ctx, error):
 
     elif isinstance(error, discord.HTTPException):
         await ctx.send("You can only bulk delete messages that "
-                        "are under 14 days old")
-    
+                       "are under 14 days old")
+
+
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
         pages = await bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)

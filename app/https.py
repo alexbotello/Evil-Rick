@@ -33,7 +33,7 @@ class BandsInTownRequest:
             urls.append(URL)
         return urls
 
-    async def send(self): 
+    async def send(self):
         """
         The user entry point
         Parameter
@@ -42,30 +42,30 @@ class BandsInTownRequest:
             The name of the location to search for concerts
         """
         await self.run_tasks()
-        
+
     async def run_tasks(self):
         async with ClientSession() as session:
             tasks = await self.gather_tasks(session)
             self.responses = await asyncio.gather(*tasks)
-        
+
     async def gather_tasks(self, session):
         tasks = []
         for url in self._urls:
             task = self.schedule_future_event(self.request(url, session))
             tasks.append(task)
         return tasks
-    
+
     def schedule_future_event(self, coroutine):
         return asyncio.ensure_future(coroutine)
-    
+
     async def request(self, url, session):
         async with session.get(url, params=self.parameters) as response:
             if response.status != 200:
-                raise TooManyRequests
-            
-            data = json.loads(await response.text())   
+                raise AttributeError
+
+            data = json.loads(await response.text())
             return self.create_concert(data)
-    
+
     def create_concert(self, data):
         if data:
             data = data[0]
@@ -88,7 +88,7 @@ class BandsInTownRequest:
         if self.responses:
             self.clean_up_results()
             return self.responses
-    
+
     def clean_up_results(self):
         # Removes empty responses
         self.responses = [r for r in self.responses if r is not None]

@@ -18,20 +18,20 @@ class Admin:
         """
         await ctx.guild.kick(member)
         await ctx.send(f"{member.name} was kicked by {ctx.author.display_name}")
-       
+
     @commands.command(no_pm=True)
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member):
         """
-        Ban user 
+        Ban user
         """
         await ctx.guild.ban(member)
         await ctx.send(f"{member.name}'s been banished to the shadow realm by {ctx.author.display_name}")
 
-    @commands.command(no_pm=True)   
+    @commands.command(no_pm=True)
     @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, member):
-        """ 
+        """
         Unbans user
         """
         banned_users = await ctx.guild.bans()
@@ -40,7 +40,7 @@ class Admin:
                 member = user[1]
         await ctx.guild.unban(member)
         await ctx.send(f"{member.name} has been reprieved by {ctx.author.display_name}")
-      
+
     @commands.command(no_pm=True)
     @commands.has_permissions(kick_members=True)
     async def delete(self, ctx, num: int):
