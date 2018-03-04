@@ -122,14 +122,15 @@ class Sounds:
             }
         state = self.get_voice_state(member.guild)
         try:
-            if before.channel != state.voice.channel:
-                if member.id in timmy:
-                    audio = self.download_video(member.guild.id, timmy[member.id])
-                    state.voice.play(audio)
-                else:
-                    url = random.choice(self.greetings)
-                    audio = self.download_video(member.guild.id, url)
-                    state.voice.play(audio)
+            if state.voice.channel == member.voice.channel:
+                if before.channel != state.voice.channel:
+                    if member.id in timmy:
+                        audio = self.download_video(member.guild.id, timmy[member.id])
+                        state.voice.play(audio)
+                    else:
+                        url = random.choice(self.greetings)
+                        audio = self.download_video(member.guild.id, url)
+                        state.voice.play(audio)
         except AttributeError:
             logger.info("Skipping Initial Voice Check")
 
