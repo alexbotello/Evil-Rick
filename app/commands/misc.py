@@ -1,6 +1,10 @@
 import random
+
+import discord
 from discord.ext import commands
+
 from utils.google import GoogleSearch
+from utils.reddit import Reddit
 
 
 class Misc:
@@ -28,6 +32,19 @@ class Misc:
         """
         result = await GoogleSearch(query)()
         await ctx.send(result)
+    
+    @commands.command()
+    @commands.cooldown(1, 30.0, type=commands.BucketType.guild)
+    async def troll(self, ctx, *, member : discord.Member):
+        """
+        Dadbod requested it...
+        """
+        reddit = Reddit(subreddit="ladybonersgw")
+        links = await reddit()
+
+        await ctx.send(f"*trolls {member.display_name}*")
+        [await member.send(content=link) for link in links]
+        await member.send(f"**You've been trolled by {ctx.author.display_name}**")
 
 
 def setup(bot):
